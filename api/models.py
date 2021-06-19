@@ -5,7 +5,7 @@ import json
 
 
 class HEUAccountInfo(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     heu_username = models.CharField(max_length=100)
     heu_password = models.CharField(max_length=100)
     account_verify_status = models.BooleanField(default=False)
@@ -19,7 +19,7 @@ class HEUAccountInfo(models.Model):
 
 class CourseInfo(models.Model):
     #课程编号
-    course_id = models.CharField(max_length=20)
+    course_id = models.CharField(max_length=20, unique=True)
     #课程名称
     name = models.CharField(max_length=100)
     #学分
@@ -46,7 +46,7 @@ class CourseInfo(models.Model):
 
 class CourseScore(models.Model):
     heu_username = models.CharField(max_length=100)
-    course = models.ForeignKey(CourseInfo, on_delete=models.DO_NOTHING)
+    course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
     score = models.CharField(max_length=20)
     term = models.CharField(max_length=50)
 
@@ -56,8 +56,8 @@ class CourseScore(models.Model):
 
 #课程评论
 class CourseComment(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
-    course = models.ForeignKey(CourseInfo, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
     content = models.TextField(max_length=100)
     created = models.DateTimeField(default=timezone.now)
     anonymous = models.BooleanField(default=False)
@@ -108,7 +108,7 @@ class TimetableQueryResult(models.Model):
 
 
 class RecentGradeCourse(models.Model):
-    course = models.ForeignKey(CourseInfo, on_delete=models.DO_NOTHING)
+    course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
     created = models.DateTimeField(default=timezone.now)
 
     class Meta:

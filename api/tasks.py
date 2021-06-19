@@ -83,20 +83,21 @@ def do_collect_scores(id):
         kind = record[10]
         general_category = record[11]
 
-        if len(CourseInfo.objects.filter(course_id=course_id)) == 0:
-            course = CourseInfo.objects.create(
-                course_id=course_id,
-                name=name,
-                credit=credit,
-                total_time=total_time,
-                assessment_method=assessment_method,
-                attributes=attributes,
-                kind=kind,
-                general_category=general_category,
-            )
-            course.save()
+        course = CourseInfo.objects.get_or_create(
+            course_id=course_id,
+            name=name,
+            credit=credit,
+            total_time=total_time,
+            assessment_method=assessment_method,
+            attributes=attributes,
+            kind=kind,
+            general_category=general_category,
+        )[0]
 
-        course = CourseInfo.objects.get(course_id=course_id)
+        course.save()
+
+        # course = CourseInfo.objects.get(course_id=course_id)
+        print(course_id)
 
         if len(CourseScore.objects.filter(course=course, heu_username=heu_username)) == 0 \
                 and record[4] != "---" \

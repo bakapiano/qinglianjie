@@ -65,6 +65,9 @@ class CourseComment(models.Model):
     class Meta:
         ordering = ('-created',)
 
+    def __str__(self):
+        return " ".join([str(self.user), str(self.course)])
+
 
 class ScoreQueryResult(models.Model):
     heu_username = models.CharField(max_length=100)
@@ -80,6 +83,9 @@ class ScoreQueryResult(models.Model):
 
     class Meta:
         ordering = ('-created',)
+
+    def __str__(self):
+        return " ".join([str(self.heu_username), str(self.created), str(self.fail)])
 
 
 class TimetableQueryResult(models.Model):
@@ -97,6 +103,9 @@ class TimetableQueryResult(models.Model):
     class Meta:
         ordering = ('-created',)
 
+    def __str__(self):
+        return " ".join([str(self.heu_username), str(self.created), str(self.fail)])
+
 
 class RecentGradeCourse(models.Model):
     course = models.ForeignKey(CourseInfo, on_delete=models.DO_NOTHING)
@@ -104,3 +113,6 @@ class RecentGradeCourse(models.Model):
 
     class Meta:
         ordering = ('-created',)
+
+    def __str__(self):
+        return " ".join([str(self.course), str(self.created)])

@@ -14,10 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views import static ##新增
 from django.conf import settings ##新增
 from django.conf.urls import url ##新增
+from rest_auth.views import PasswordResetConfirmView
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('api/', include('api.urls')),
@@ -26,4 +28,11 @@ urlpatterns = [
     path('', include('frontend.urls')),
     url(r'^static/(?P<path>.*)$', static.serve,
         {'document_root': settings.STATIC_ROOT}, name='static'),
+    
+    url(r'^rest-auth/', include('rest_auth.urls')),
+    url(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
+    url(r'^', include('django.contrib.auth.urls')),
 ]
+
+
+

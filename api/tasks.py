@@ -70,7 +70,6 @@ def collect_scores():
         except Exception as e:
             info.fail_last_time = True
             info.save()
-            return "Fail"
 
         for record in scores:
             course_id = record[2]
@@ -98,7 +97,7 @@ def collect_scores():
                 course.save()
 
             # course = CourseInfo.objects.get(course_id=course_id)
-            print(heu_username, course_id)
+            # print(heu_username, course_id)
 
             if len(CourseScore.objects.filter(course=course, heu_username=heu_username)) == 0 \
                     and record[4] != "---" \

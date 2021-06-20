@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
-from . import views
+from . import views, api_views
 
 urlpatterns = [
     path('query/scores', views.query_scores, name="query_scores"),
@@ -25,4 +25,8 @@ urlpatterns = [
 
     path('grade/notify', login_required(views.MailWhenGradeView.as_view()),
                                         name="grade_notify"),
+
+    path('HEUAccount', api_views.HEUAccountView.as_view(), name="HEUAccount"),
+    path('my/timetable', api_views.MyTimeTableView.as_view(), name="my_timetable"),
+    path('my/scores', api_views.MyScoresView.as_view(), name="my_scores"),
 ]

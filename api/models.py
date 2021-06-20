@@ -6,11 +6,14 @@ import json
 
 class HEUAccountInfo(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
     heu_username = models.CharField(max_length=100)
     heu_password = models.CharField(max_length=100)
     account_verify_status = models.BooleanField(default=False)
+
     report_daily = models.BooleanField(default=False)
     fail_last_time = models.BooleanField(default=True)
+
     mail_when_grade = models.BooleanField(default=False)
 
     def __str__(self):
@@ -69,11 +72,17 @@ class CourseComment(models.Model):
         return " ".join([str(self.user), str(self.course)])
 
 
+STATUS_CHOICES = (('Fail', 'Fail'), ('Pending', 'Pending'), ('Success', 'Success'), ('Never', 'Never'))
+
 class ScoreQueryResult(models.Model):
     heu_username = models.CharField(max_length=100)
     result = models.TextField(default="")
     created = models.DateTimeField(default=timezone.now)
     fail = models.BooleanField(default=False)
+
+    # 状态 {'Success', 'Fail', 'Pending'}
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Pending")
+
 
     def set_result(self, value):
         self.result = json.jumps(value)
@@ -93,6 +102,9 @@ class TimetableQueryResult(models.Model):
     result = models.TextField(default="")
     created = models.DateTimeField(default=timezone.now)
     fail = models.BooleanField(default=False)
+
+    # 状态 {'Success', 'Fail', 'Pending'}
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Pending")
 
     def set_result(self, value):
         self.result = json.jumps(value)

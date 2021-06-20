@@ -11,13 +11,22 @@ import os, json, django
 @shared_task
 def query_scores(username:str, password:str):
     django.setup()
-    ScoreQueryResult.objects.filter(heu_username=username).delete()
+    # ScoreQueryResult.objects.filter(heu_username=username).delete()
     try:
         crawler = Crawler()
         crawler.login(username, password)
-        ScoreQueryResult.objects.get_or_create(heu_username=username,result=json.dumps(crawler.getScores()))[0].save()
+        res = ScoreQueryResult.objects.get_or_create(heu_username=username)[0]
+        res.result = json.dumps(crawler.getScores())
+        res.status = "Success"
+        res.fail = False
+        res.created = timezone.now()
+        res.save()
     except Exception as e:
-        ScoreQueryResult.objects.get_or_create(heu_username=username,fail=True)[0].save()
+        res = ScoreQueryResult.objects.get_or_create(heu_username=username)[0]
+        res.status = "Fail"
+        res.fail = True
+        # res.created = timezone.now()
+        res.save()
         print(e)
         return "Fail"
     return "Success"
@@ -26,15 +35,25 @@ def query_scores(username:str, password:str):
 @shared_task
 def query_time_table(username:str, password:str, term:str):
     django.setup()
-    TimetableQueryResult.objects.filter(heu_username=username).delete()
+    # TimetableQueryResult.objects.filter(heu_username=username).delete()
     try:
         crawler = Crawler()
         crawler.login(username, password)
-        TimetableQueryResult.objects.get_or_create(heu_username=username,result=json.dumps(crawler.getTermTimetable(term)))[0].save()
+        res = TimetableQueryResult.objects.get_or_create(heu_username=username)[0]
+        res.result = json.dumps(crawler.getTermTimetable(term))
+        res.status = "Success"
+        res.fail = False
+        res.created = timezone.now()
+        res.save()
     except Exception as e:
-        TimetableQueryResult.objects.get_or_create(heu_username=username,fail=True)[0].save()
+        res = TimetableQueryResult.objects.get_or_create(heu_username=username)[0]
+        res.status = "Fail"
+        res.fail = True
+        # res.created = timezone.now()
+        res.save()
         print(e)
         return "Fail"
+
     return "Success"
 
 
@@ -102,12 +121,12 @@ def collect_scores():
             if len(CourseScore.objects.filter(course=course, heu_username=heu_username)) == 0 \
                     and record[4] != "---" \
                     and course_kind == "正常考试":
-                CourseScore.objects.create(
+                CourseScore.objects.get_or_create(
                     course=course,
                     heu_username=heu_username,
                     score=record[4],
                     term=record[1],
-                ).save()
+                )[0].save()
 
                 if not info.fail_last_time:
                     recent = RecentGradeCourse.objects.filter(course=course)
@@ -126,7 +145,7 @@ def collect_scores():
                         flag = False
                         if len(recent) >= 1:
                             delta = timezone.now() - recent[0].created
-                            if delta.total_seconds() <= 60 * 60 * 24:
+                            if delta.total_seconds() <= 60 * 60 * 12:
                                 flag = True
                         else:
                             flag = True

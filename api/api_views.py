@@ -82,6 +82,7 @@ class MyTimeTableView(APIView):
         serializer = MyTimeTableSerializer(data)
         res = dict(serializer.data)
         res.update({"created": data.created.timestamp()})
+        res.update({"result": json.loads(data.result)})
         return Response(res, status=status.HTTP_200_OK)
 
     # 请求刷新课表
@@ -133,6 +134,7 @@ class MyScoresView(APIView):
         serializer = MyScoresSerializer(data)
         res = dict(serializer.data)
         res.update({"created": data.created.timestamp()})
+        res.update({"result": json.loads(data.result)})
         return Response(res, status=status.HTTP_200_OK)
 
     # 请求刷新成绩

@@ -25,7 +25,7 @@ def query_scores(username:str, password:str):
         res = ScoreQueryResult.objects.get_or_create(heu_username=username)[0]
         res.status = "Fail"
         res.fail = True
-        # res.created = timezone.now()
+        res.created = timezone.now()
         res.save()
         print(e)
         return "Fail"
@@ -49,7 +49,7 @@ def query_time_table(username:str, password:str, term:str):
         res = TimetableQueryResult.objects.get_or_create(heu_username=username)[0]
         res.status = "Fail"
         res.fail = True
-        # res.created = timezone.now()
+        res.created = timezone.now()
         res.save()
         print(e)
         return "Fail"

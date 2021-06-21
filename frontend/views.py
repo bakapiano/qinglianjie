@@ -26,6 +26,7 @@ def format_date(string):
 
 
 def index(request):
+    now = datetime.now()
     return render(request, 'index.html',{
         'login': not (request.session.get('_auth_user_id') is None),
         'index_page': True,
@@ -42,7 +43,11 @@ def index(request):
             "course_name": record.course.name,
             "course_id": record.course.course_id,
             "time": record.created,
-        } for record in RecentGradeCourse.objects.all()[:10]],
+        } for record in RecentGradeCourse.objects.filter(created__gt=datetime(
+            now.year,
+            now.month,
+            now.day,
+        ))],
     })
 
 
@@ -299,6 +304,7 @@ def course(request, course_id):
             "content": comment.content,
             "anonymous": comment.anonymous,
          } for comment in CourseComment.objects.filter(course=course)],
+        'grade_time': RecentGradeCourse.objects.filter(course=course),
         "score": CourseScore.objects.filter(course=course,heu_username=heu_username)[0].score if
             not(heu_username is None) and
             CourseScore.objects.filter(course=course,heu_username=heu_username).count()!=0 else None,

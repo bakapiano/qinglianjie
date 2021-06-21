@@ -164,6 +164,7 @@ def collect_scores():
                                 )
                             except Exception as e:
                                 # 邮件发送失败:( do nothing
+                                print(e)
                                 pass
 
         if info.fail_last_time:

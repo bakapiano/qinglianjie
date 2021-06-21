@@ -39,7 +39,10 @@
                 <div class="collapse" id="calc_average">
                 <div class="card px-2 pt-2 mt-3 pb-3 hide">
                     <div class="card-body pb-0">
-                        选中的 <strong id="total_selected">0</strong> 门科目，学分总 <strong id="total_credit">0</strong>，加权分 <strong id="avg">0</strong>
+                        选中的 <strong id="total_selected">0</strong> 门科目，
+                        学分总 <strong id="total_credit">0</strong>，
+                        加权分 <strong id="avg">0</strong>，
+                        加权GPA <strong id="avg_gpa">0</strong>
                         <hr>
                     <button type="button" class="btn btn-success btn-sm" id="do_calc_avg" onclick="do_calc_avg()">计算</button>
                     <button type="button" class="btn btn-danger btn-sm" id="close_calc_average">关闭</button>
@@ -149,11 +152,27 @@
     </div>
 
     <script>
+        function score_to_gpa(score) {
+            if(score >= 90){
+                return 4.0;
+            }
+            if(score >= 80){
+                return 3.0;
+            }
+            if(score >= 70){
+                return 2.0;
+            }
+            if(score >= 60){
+                return 1.0;
+            }
+            return 0.0;
+        }
         function do_calc_avg() {
             var inputs = $('.avg_input');
             var total_credit = 0.0;
             var avg_score = 0.0;
             var total_selected = 0;
+            var avg_gpa = 0.0;
             for(var i=0; i<inputs.length; ++i) {
                 var ele = inputs[i];
                 if(ele.checked) {
@@ -171,24 +190,35 @@
                     '及格'  : 65,
                     '不及格' : 30,
                 }
+                var gpa_dict = {
+                    '优秀'  : 4.0,
+                    '良好'  : 3.0,
+                    '中等'  : 2.0,
+                    '及格'  : 1.0,
+                    '不及格' : 0.0,
+                }
                 var score = score_dict[ele.getAttribute('score')];
+                var gpa = gpa_dict[ele.getAttribute('score')];
                 if(score==undefined){
                     score = parseFloat(ele.getAttribute('score'));
+                    gpa = score_to_gpa(score);
                 }
                 if(ele.checked) {
                     var credit = parseFloat(ele.getAttribute('credit'));
                     avg_score += score*credit/total_credit;
                     total_selected++;
+                    avg_gpa += gpa*credit/total_credit;
                 }
-                {#console.log(ele,score)#}
+                console.log(ele,score,gpa)
             }
 
             $('#avg')[0].innerText = avg_score.toFixed(2);
             $('#total_credit')[0].innerText = total_credit;
             $('#total_selected')[0].innerText = total_selected;
+            $('#avg_gpa')[0].innerText = avg_gpa.toFixed(2);
 
             console.log(avg_score);
-
+            console.log(avg_gpa);
         }
         window.onload = function () {
 

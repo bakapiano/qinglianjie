@@ -252,4 +252,10 @@ class Crawler:
 
 
 if __name__ == "__main__":
+
+    t = Crawler()
+    t.login("2018065608", "07132119")
+    t.getScores()
+
+
     exit(0)

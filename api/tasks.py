@@ -89,6 +89,7 @@ def collect_scores():
         except Exception as e:
             info.fail_last_time = True
             info.save()
+            continue
 
         for record in scores:
             course_id = record[2]

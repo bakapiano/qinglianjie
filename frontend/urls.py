@@ -12,7 +12,7 @@ urlpatterns = [
     path('report', views.report, name="report"),
     path('', views.index, name="home"),
     path('courses', views.courses, name="courses"),
-    path('course/<int:course_id>', views.course, name="course"),
+    path('course/<str:course_id>', views.course, name="course"),
     path('profile', views.profile, name="profile"),
     path('pingjiao', views.pingjiao, name="pingjiao"),
 

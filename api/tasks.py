@@ -107,13 +107,13 @@ def collect_scores():
             )
 
             if created:
-                course.name = name,
-                course.credit = credit,
-                course.total_time = total_time,
-                course.assessment_method = assessment_method,
-                course.attributes = attributes,
-                course.kind = kind,
-                course.general_category = general_category,
+                course.name = name
+                course.credit = credit
+                course.total_time = total_time
+                course.assessment_method = assessment_method
+                course.attributes = attributes
+                course.kind = kind
+                course.general_category = general_category
                 course.save()
 
             # course = CourseInfo.objects.get(course_id=course_id)

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <div class="main container">
     <div class="row">
@@ -19,6 +20,12 @@
                 <div class="card-header">
                     <div class="mt-2 mb-2">
                         <h4>自动报备</h4>
+
+{#                        <div class="layui-inline" id="test-date"></div>#}
+{#                        <button class="layui-btn" style="margin-top:10px;margin-left:10px;" onclick="getAllDate()">获取日期</button>#}
+{#                        <div id="date_all"></div>#}
+
+
                     </div>
                 </div>
                 <div class="card-body">
@@ -44,4 +51,68 @@
     </div>
 
 </div>
+
+<script src="{% static '/layui/layui.js' %}"></script>
+<script>
+
+var data = {};
+			var layer, $, laydate;
+			layui.use(['layer', 'form', 'jquery', 'laydate'], function () {
+				layer = layui.layer;
+				$ = layui.jquery;
+				laydate = layui.laydate;
+	        	var new_date = new Date();
+	        	loding_date(new_date, data);
+	    	})
+			//日历插件调用方法
+			function loding_date(date_value, data) {
+			    laydate.render({
+			        elem: '#test-date'
+			        , type: 'date'
+			        , theme: 'grid'
+			        , position: 'static'
+			        , range: false
+			        , value: date_value
+			        , isInitValue: false // 2.3.0新增
+			        , calendar: false
+			        , btns: false
+			        , ready: function (value) {
+			            hide_this(value);
+			        }
+			        , done: function (value, date, endDate) {
+			            add_new(value, data)
+			        }
+			        , change: function (value, date) {
+			            hide_this(date);
+			        }
+			        , mark: data // 选中的所有日期赋值, 默认赋值格式为json 如：{'2021-03-03':''}
+			    });
+			}
+			function hide_this(value) {
+			    var mm = value.year + '-' + value.month + '-' + value.date;
+			    $('.laydate-theme-grid table tbody').find('[lay-ymd="' + mm + '"]').removeClass('layui-this');
+			}
+			//定义添加/编辑标注方法
+			function add_new(obj_date, markJson) {
+			    $('#test-date').html(''); // 先清除原先表格信息
+			    if (markJson.hasOwnProperty(obj_date)) {
+			        delete markJson[obj_date]; // 删除取消日期
+			    } else {
+			        // 新增选择日期
+			        markJson[obj_date] = ''
+			    }
+			    loding_date(obj_date, markJson);// 重新创建个新的日期表格
+			}
+			function getAllDate(){
+			    var dates = "";
+			    for(var key in data){
+			  		if(dates == ""){
+				    	dates = key;
+			 		}else{
+			  			dates += ","+key;
+					}
+			    }
+			    $("#date_all").text(dates);
+			}
+</script>
 {% endblock %}

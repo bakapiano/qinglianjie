@@ -10,6 +10,20 @@ from django.contrib.auth.models import User
 from qinglianjie.settings import QUERY_INTERVAL
 from api.tasks import *
 from datetime import datetime
+from rest_framework import permissions
+
+
+class HEUAccountVerified(permissions.BasePermission):
+    message = "需要先绑定HEU账号"
+    def has_permission(self, request, view):
+        flag = True
+        try:
+            flag = HEUAccountInfo.objects.get(user=request.user).account_verify_status
+        except Exception as e:
+            flag = False
+        print("fuck", flag)
+        return flag
+
 
 # HEU账号信息
 class HEUAccountView(APIView):
@@ -51,26 +65,11 @@ class HEUAccountView(APIView):
         return Response({'detail': '成功解绑HEU账号'}, status=status.HTTP_204_NO_CONTENT)
 
 
-def heu_account_verify_required(func):
-    def wrapper(self, request, *args, **kwargs):
-        user_id = request.session["_auth_user_id"]
-        flag = True
-        try:
-            flag = HEUAccountInfo.objects.get(user=User.objects.get(id=user_id)).account_verify_status
-        except Exception as e:
-            flag = False
-        if not flag:
-            return Response({'detail': '需要先绑定HEU账号'}, status=status.HTTP_403_FORBIDDEN)
-        return func(self, request, *args, **kwargs)
-    return wrapper
-
-
 # 我的课表
 class MyTimeTableView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, HEUAccountVerified)
 
     # 获取最后一次获取的课表结果
-    @heu_account_verify_required
     def get(self, request):
         info = HEUAccountInfo.objects.get(user=request.user)
         data, created = TimetableQueryResult.objects.get_or_create(heu_username=info.heu_username)
@@ -86,7 +85,6 @@ class MyTimeTableView(APIView):
         return Response(res, status=status.HTTP_200_OK)
 
     # 请求刷新课表
-    @heu_account_verify_required
     def post(self, request):
         info = HEUAccountInfo.objects.get(user=request.user)
 
@@ -119,10 +117,9 @@ class MyTimeTableView(APIView):
 
 # 我的成绩
 class MyScoresView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, HEUAccountVerified)
 
     # 获取最后一次获取的成绩结果
-    @heu_account_verify_required
     def get(self, request):
         info = HEUAccountInfo.objects.get(user=request.user)
         data, created = ScoreQueryResult.objects.get_or_create(heu_username=info.heu_username)
@@ -138,7 +135,6 @@ class MyScoresView(APIView):
         return Response(res, status=status.HTTP_200_OK)
 
     # 请求刷新成绩
-    @heu_account_verify_required
     def post(self, request):
         info = HEUAccountInfo.objects.get(user=request.user)
 
@@ -161,3 +157,34 @@ class MyScoresView(APIView):
         query_scores.delay(info.heu_username, info.heu_password)
 
         return Response({'detail': '请求刷新成绩成功', 'created': data.created.timestamp()}, status=status.HTTP_201_CREATED)
+
+
+# 绑定qq
+class BindQQView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    # 获取当前绑定的HEU账号信息
+    def get(self, request):
+        info = QQBindInfo.objects.get_or_create(user=request.user)[0]
+        serializer = QQBindInfoSerialize(info)
+        info.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # 绑定HEU账号
+    def post(self, request):
+        serializer = QQBindInfoSerialize(data=request.data)
+        if serializer.is_valid():
+            info = QQBindInfo.objects.get_or_create(user=request.user)[0]
+            if 'qq_id' in serializer.validated_data.keys():
+                info.qq_id = serializer.validated_data['qq_id']
+            info.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # 解绑HEU账号
+    def delete(self, request):
+        info = QQBindInfo.objects.get_or_create(user=request.user)[0]
+        info.qq_id = 0
+        info.save()
+        return Response({'detail': '成功解绑QQ账号'}, status=status.HTTP_204_NO_CONTENT)

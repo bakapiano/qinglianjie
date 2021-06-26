@@ -31,3 +31,15 @@ class MyScoresSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimetableQueryResult
         fields = ['heu_username', 'result', 'created', 'status']
+
+
+class NoticeTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NoticeTask
+        fields = ["pk", "qq_id", "content"]
+
+
+class QQBindInfoSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = QQBindInfo
+        fields = ['qq_id',]

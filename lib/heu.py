@@ -179,6 +179,7 @@ class Crawler:
         report_id = url.split("/")[-2]
 
         res = self.session.get(url)
+
         csrf = self.get_csrf_token(res.text)
         cur_time = time.localtime(time.time())
         temp = list(cur_time)

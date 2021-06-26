@@ -16,6 +16,8 @@ class HEUAccountInfo(models.Model):
 
     mail_when_grade = models.BooleanField(default=False)
 
+    qq_me_when_grade = models.BooleanField(default=False)
+
     def __str__(self):
         return " ".join([str(self.user), self.heu_username])
 
@@ -128,3 +130,19 @@ class RecentGradeCourse(models.Model):
 
     def __str__(self):
         return " ".join([str(self.course), str(self.created)])
+
+
+class QQBindInfo(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    qq_id = models.IntegerField(default=0)
+
+    def __str__(self):
+        return " ".join([str(self.user), str(self.qq_id)])
+
+
+class NoticeTask(models.Model):
+    qq_id = models.IntegerField(default=0)
+    content = models.TextField()
+
+    def __str__(self):
+        return " ".join([str(self.qq_id), str(self.content)])

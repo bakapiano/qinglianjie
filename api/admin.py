@@ -10,9 +10,10 @@ class HEUAccountInfoAdmin(admin.ModelAdmin):
         "report_daily",
         "account_verify_status",
         "fail_last_time",
-        "mail_when_grade"
+        "mail_when_grade",
+        "qq_me_when_grade",
     )
-    list_filter = ('report_daily', 'account_verify_status', 'fail_last_time', 'mail_when_grade')
+    list_filter = ('report_daily', 'account_verify_status', 'fail_last_time', 'mail_when_grade', "qq_me_when_grade")
     fk_fields = ('user',)
     search_fields = ('user__username', "heu_username",)
 

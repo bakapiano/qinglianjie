@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from lib.heu import Crawler
-from api.models import HEUAccountInfo, CourseInfo, CourseScore, ScoreQueryResult, TimetableQueryResult, RecentGradeCourse
+from api.models import HEUAccountInfo, CourseInfo, CourseScore, ScoreQueryResult, TimetableQueryResult, RecentGradeCourse, NoticeTask, QQBindInfo
 from django.utils import timezone
 from django.core.mail import send_mail
 from qinglianjie.settings import EMAIL_FROM
@@ -119,9 +119,7 @@ def collect_scores():
             # course = CourseInfo.objects.get(course_id=course_id)
             # print(heu_username, course_id)
 
-            if len(CourseScore.objects.filter(course=course, heu_username=heu_username)) == 0 \
-                    and record[4] != "---" \
-                    and course_kind == "正常考试":
+            if record[4] != "---" and course_kind == "正常考试":
                 CourseScore.objects.get_or_create(
                     course=course,
                     heu_username=heu_username,
@@ -139,34 +137,35 @@ def collect_scores():
                     if flag:
                         RecentGradeCourse.objects.create(course=course).save()
 
-                # 出分时邮件发给我！
-                if info.mail_when_grade:
-                    if not info.fail_last_time:
-                        recent = RecentGradeCourse.objects.filter(course=course)
-                        flag = False
-                        if len(recent) >= 1:
-                            delta = timezone.now() - recent[0].created
-                            if delta.total_seconds() <= 60 * 60 * 12:
-                                flag = True
-                        else:
-                            flag = True
-                        print(info, course, record)
-                        print(flag)
-                        if flag:
-                            print(info.user.email)
-                            try:
-                                send_mail(
-                                    '%s 出分提醒' % course.name,
-                                    '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) +
-                                    '如果你不想再收到出分提醒，可以在个人主页里关闭该功能。\n' +
-                                    'Qinglianjie',
-                                    EMAIL_FROM,
-                                    [info.user.email],
-                                )
-                            except Exception as e:
-                                # 邮件发送失败:( do nothing
-                                print(e)
-                                pass
+                if not info.fail_last_time:
+                    content = '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) + '如果你不想再收到出分提醒，可以在个人主页里关闭该功能。\n' + 'Qinglianjie'
+                    # 出分时qq提醒我！
+                    if info.qq_me_when_grade:
+                        try:
+                            print(content)
+                            qq_id = QQBindInfo.objects.get(user=info.user).qq_id
+                            NoticeTask.objects.get_or_create(
+                                qq_id = qq_id,
+                                content = content
+                            )[0].save()
+                        except Exception as e:
+                            print(e)
+                            pass
+
+                    # 出分时邮件发给我！
+                    # if info.mail_when_grade:
+                    #     try:
+                    #         count += 5
+                    #         my_send_mail.apply_async((
+                    #             '%s 出分提醒' % course.name,
+                    #             content,
+                    #             EMAIL_FROM,
+                    #             [info.user.email],
+                    #         ),countdown =count)
+                    #     except Exception as e:
+                    #         # 邮件发送失败:( do nothing
+                    #         print(e)
+                    #         pass
 
         if info.fail_last_time:
             info.fail_last_time = False

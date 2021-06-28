@@ -189,17 +189,17 @@ def refresh_time_table(request):
 @login_required
 @heu_account_verify_required
 def test_auto_report(request):
-    user_id = request.session["_auth_user_id"]
-    user_info = HEUAccountInfo.objects.get(user=User.objects.get(id=user_id))
-    username = user_info.heu_username
-    password = user_info.heu_password
-    tasks.report_daily.delay()
-    return JsonResponse({"status": "SUCCESS"})
+    if request.user.is_superuser:
+        tasks.report_daily.delay()
+        return JsonResponse({"status": "Success."})
+    return JsonResponse({"status": "No permission."})
 
 
 def test_collect_scores(request):
-    collect_scores.delay()
-    return HttpResponse("ok")
+    if request.user.is_superuser:
+        collect_scores.delay()
+        return JsonResponse({"status": "Success."})
+    return JsonResponse({"status": "No permission."})
 
 
 def query_course_scores(request):

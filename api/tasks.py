@@ -138,7 +138,12 @@ def collect_scores():
                     if flag:
                         RecentGradeCourse.objects.create(course=course).save()
 
-                    content = '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) + '如果你不想再收到出分提醒，可以在个人主页里关闭该功能。\n' + 'Qinglianjie'
+                    content = \
+                        '课程 %s 出分啦！' % record[3] + \
+                        '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) + \
+                        '如果你不想再收到出分提醒，可以在个人主页里关闭该功能。\n' + \
+                        'Qinglianjie'
+
                     # 出分时qq提醒我！
                     if info.qq_me_when_grade:
                         try:

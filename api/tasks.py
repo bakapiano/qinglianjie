@@ -120,14 +120,15 @@ def collect_scores():
             # print(heu_username, course_id)
 
             if record[4] != "---" and course_kind == "正常考试":
-                CourseScore.objects.get_or_create(
+                obj, created = CourseScore.objects.get_or_create(
                     course=course,
                     heu_username=heu_username,
                     score=record[4],
                     term=record[1],
-                )[0].save()
+                )
+                obj.save()
 
-                if not info.fail_last_time:
+                if (not info.fail_last_time) and created:
                     recent = RecentGradeCourse.objects.filter(course=course)
                     flag = True
                     if len(recent) >= 1:
@@ -137,7 +138,6 @@ def collect_scores():
                     if flag:
                         RecentGradeCourse.objects.create(course=course).save()
 
-                if not info.fail_last_time:
                     content = '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) + '如果你不想再收到出分提醒，可以在个人主页里关闭该功能。\n' + 'Qinglianjie'
                     # 出分时qq提醒我！
                     if info.qq_me_when_grade:

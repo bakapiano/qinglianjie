@@ -95,8 +95,9 @@ class Crawler:
             for td in row.find_all('td'):
                 temp = td.contents if td.a is None else td.a.contents
                 contents.append(temp[0] if len(temp) > 0 else "")
-            if len(contents) > 0:
+            if len(contents) == 13:
                 scores.append(contents)
+            #print(contents)
         return scores
 
     def getTermTimetable(self, term: str):

@@ -90,8 +90,9 @@ def collect_scores():
             info.fail_last_time = True
             info.save()
             continue
-
+        print(heu_username)
         for record in scores:
+            print(record)
             course_id = record[2]
             name = record[3]
             credit = record[5]

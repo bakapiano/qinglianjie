@@ -231,4 +231,6 @@ def get_xk_info():
                             "请注意及时选课！",
                         type="QQ",
                     ).save()
+        break
+
     return "Done"

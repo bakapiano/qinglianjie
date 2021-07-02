@@ -193,6 +193,7 @@ def count_courses():
 @shared_task
 def get_xk_info():
     django.setup()
+    XKInfo.objects.all().delete()
     for info in HEUAccountInfo.objects.filter(account_verify_status=True):
         heu_username = info.heu_username
         try:

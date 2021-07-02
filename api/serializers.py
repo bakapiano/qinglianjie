@@ -36,10 +36,16 @@ class MyScoresSerializer(serializers.ModelSerializer):
 class NoticeTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = NoticeTask
-        fields = ["pk", "qq_id", "content"]
+        fields = ["pk", "qq_id", "content", "type"]
 
 
 class QQBindInfoSerialize(serializers.ModelSerializer):
     class Meta:
         model = QQBindInfo
         fields = ['qq_id',]
+
+
+class GroupInfoSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = GroupInfo
+        fields = ['group_id', "notice_when_xk"]

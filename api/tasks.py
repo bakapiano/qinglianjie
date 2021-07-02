@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from lib.heu import Crawler
-from api.models import HEUAccountInfo, CourseInfo, CourseScore, ScoreQueryResult, TimetableQueryResult, RecentGradeCourse, NoticeTask, QQBindInfo
+from api.models import *
 from django.utils import timezone
 from django.core.mail import send_mail
 from qinglianjie.settings import EMAIL_FROM
@@ -188,3 +188,46 @@ def count_courses():
         course.count = CourseScore.objects.filter(course=course).count()
         course.save()
     return "Success"
+
+
+@shared_task
+def get_xk_info():
+    django.setup()
+    for info in HEUAccountInfo.objects.filter(account_verify_status=True):
+        heu_username = info.heu_username
+        try:
+            crawler = Crawler()
+            crawler.login(info.heu_username, info.heu_password)
+            result = crawler.getXKInfo()
+        except Exception as e:
+            continue
+        for record in result:
+            obj, created = XKInfo.objects.get_or_create(
+                term = record[0],
+                title = record[1],
+                time = record[2],
+            )
+
+            if created:
+                obj.save()
+
+                for group in GroupInfo.objects.filter(notice_when_xk=True):
+                    NoticeTask.objects.create(
+                        qq_id = group.group_id,
+                        content = \
+                        '%s 已经开始，' % record[1] + \
+                        '时间为 %s\n' % record[2] + \
+                        "请注意及时选课！",
+                        type = "Group",
+                    ).save()
+
+                for user in QQBindInfo.objects.filter(notice_when_xk=True):
+                    NoticeTask.objects.create(
+                        qq_id=user.qq_id,
+                        content= \
+                            '%s 已经开始，' % record[1] + \
+                            '时间为 %s\n' % record[2] + \
+                            "请注意及时选课！",
+                        type="QQ",
+                    ).save()
+    return "Done"

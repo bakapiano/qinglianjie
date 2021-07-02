@@ -202,6 +202,13 @@ def test_collect_scores(request):
     return JsonResponse({"status": "No permission."})
 
 
+def test_collect_xk_info(request):
+    if request.user.is_superuser:
+        get_xk_info.delay()
+        return JsonResponse({"status": "Success."})
+    return JsonResponse({"status": "No permission."})
+
+
 def query_course_scores(request):
     course_id = request.GET.get("course_id")
     if course_id is None:

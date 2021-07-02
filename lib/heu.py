@@ -163,6 +163,25 @@ class Crawler:
         import re
         pattern = re.compile(r'<meta itemscope="csrfToken" content="(.*?)">')
         return pattern.findall(content)[0]
+    
+    def getXKInfo(self):
+        result = []
+        res = self.session.get(
+            url="https://edusys.wvpn.hrbeu.edu.cn/jsxsd/xsxk/xklc_list.do",
+        )
+        s = soup(res.text, features="html.parser")
+        for row in s.find(id="tbKxkc").find_all("tr"):
+            contents = []
+            for td in row.find_all('td'):
+                temp = td.contents if td.a is None else td.a.contents
+                contents.append(temp[0] if len(temp) > 0 else "")
+            if len(contents) == 4:
+                result.append(contents)
+            # print(contents)
+        print(result)
+        return result
+
+
 
     def report(self):
         import time, json

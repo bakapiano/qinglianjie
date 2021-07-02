@@ -24,3 +24,16 @@ class NoticeTaskRetrieveDestroy(generics.RetrieveDestroyAPIView):
     queryset = NoticeTask.objects.all()
     serializer_class = NoticeTaskSerializer
     permission_classes = (IsAuthenticated, permissions.IsAdminUser)
+
+
+class GroupInfoListCreate(generics.ListCreateAPIView):
+    queryset = GroupInfo.objects.all()
+    serializer_class = GroupInfoSerialize
+    permission_classes = (IsAuthenticated, permissions.IsAdminUser)
+
+
+class GroupInfoRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    lookup_field = 'group_id'
+    queryset = GroupInfo.objects.all()
+    serializer_class = GroupInfoSerialize
+    permission_classes = (IsAuthenticated, permissions.IsAdminUser)

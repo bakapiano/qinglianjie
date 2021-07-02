@@ -136,13 +136,35 @@ class QQBindInfo(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     qq_id = models.BigIntegerField(default=0)
 
+    # 选课开始时提醒我
+    notice_when_xk = models.BooleanField(default=False)
     def __str__(self):
         return " ".join([str(self.user), str(self.qq_id)])
+
+
+NOTICE_TYPES = (('QQ', 'QQ'), ('Group', 'Group'))
 
 
 class NoticeTask(models.Model):
     qq_id = models.BigIntegerField(default=0)
     content = models.TextField()
+    type = models.CharField(max_length=10, choices=NOTICE_TYPES, default="QQ")
 
     def __str__(self):
-        return " ".join([str(self.qq_id), str(self.content)])
+        return " ".join([str(self.qq_id), str(self.content), str(self.type)])
+
+
+class XKInfo(models.Model):
+    term = models.CharField(max_length=20)
+    title = models.CharField(max_length=100)
+    time = models.CharField(max_length=100)
+
+    def __str__(self):
+        return " ".join([str(self.term), str(self.title), str(self.time)])
+
+
+class GroupInfo(models.Model):
+    group_id = models.BigIntegerField(default=0)
+
+    #选课开始时提醒群
+    notice_when_xk = models.BooleanField(default=False)

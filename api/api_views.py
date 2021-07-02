@@ -163,14 +163,14 @@ class MyScoresView(APIView):
 class BindQQView(APIView):
     permission_classes = (IsAuthenticated, )
 
-    # 获取当前绑定的HEU账号信息
+    # 获取当前绑定的QQ账号信息
     def get(self, request):
         info = QQBindInfo.objects.get_or_create(user=request.user)[0]
         serializer = QQBindInfoSerialize(info)
         info.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # 绑定HEU账号
+    # 绑定QQ账号
     def post(self, request):
         serializer = QQBindInfoSerialize(data=request.data)
         if serializer.is_valid():
@@ -182,7 +182,7 @@ class BindQQView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # 解绑HEU账号
+    # 解绑QQ账号
     def delete(self, request):
         info = QQBindInfo.objects.get_or_create(user=request.user)[0]
         info.qq_id = 0

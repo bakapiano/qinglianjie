@@ -34,6 +34,10 @@ app.conf.beat_schedule = {
     "auto_count_courses": {
         "task": "api.tasks.count_courses",
         "schedule": crontab(hour=12, minute=0),
+    },
+    "auto_get_xk_info": {
+        "task": "api.tasks.get_xk_info",
+        "schedule": crontab(hour=8, minute=0),
     }
 }
 

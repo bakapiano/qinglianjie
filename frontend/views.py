@@ -77,8 +77,13 @@ def scores(request):
         'Pending': '排队中',
     }
 
+    status = 'Fail'
+    try:
+        status = trans[json_data['type']]
+    except Exception as e:
+        pass
     return render(request, 'scores.html', {
-        'status': trans[json_data['type']],
+        'status': status,
         'fail': fail,
         'scores': scores_list,
         'date': format_date(date.split('.')[0]) if not (date is None) else None,
@@ -272,7 +277,9 @@ def courses(request):
     learned = None
     if not(request.session.get('_auth_user_id') is None):
         user_id = request.session["_auth_user_id"]
-        user_info = HEUAccountInfo.objects.get(user=User.objects.get(id=user_id))
+        user_info, created = HEUAccountInfo.objects.get_or_create(user=User.objects.get(id=user_id))
+        if created:
+            user_info.save()
         heu_username = user_info.heu_username
         learned = [record.course for record in CourseScore.objects.filter(heu_username=heu_username)]
         for course in learned:
@@ -296,7 +303,9 @@ def course(request, course_id):
     heu_username = None
     if not(request.session.get('_auth_user_id') is None):
         user_id = request.session["_auth_user_id"]
-        user_info = HEUAccountInfo.objects.get(user=User.objects.get(id=user_id))
+        user_info, created = HEUAccountInfo.objects.get_or_create(user=User.objects.get(id=user_id))
+        if created:
+            user_info.save()
         heu_username = user_info.heu_username
     return render(request, "course.html", {
         "course_id": course_id,
@@ -323,6 +332,9 @@ def course(request, course_id):
 def profile(request):
     user_id = request.session["_auth_user_id"]
     user = User.objects.get(id=user_id)
+    user_info, created = HEUAccountInfo.objects.get_or_create(user=User.objects.get(id=user_id))
+    if created:
+        user_info.save()
     return render(request, "profile.html", {
         'comments': [{
             "username": comment.user.username if not comment.anonymous else "匿名",
@@ -341,7 +353,12 @@ def profile(request):
 def pingjiao(request):
     user_id = request.session["_auth_user_id"]
     user = User.objects.get(id=user_id)
-    info = HEUAccountInfo.objects.get(user=user)
+
+    info, created = HEUAccountInfo.objects.get_or_create(user=User.objects.get(id=user_id))
+    if created:
+        info.save()
+
+    #info = HEUAccountInfo.objects.get(user=user)
 
     if not info.account_verify_status:
         return redirect(reverse("bind"))

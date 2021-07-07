@@ -122,6 +122,7 @@ def query_scores(request):
         'status': 'SUCCESS',
         'date': date,
         'data': data,
+        'type': res.status,
     })
 
 

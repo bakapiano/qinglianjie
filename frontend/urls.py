@@ -15,6 +15,7 @@ urlpatterns = [
     path('course/<str:course_id>', views.course, name="course"),
     path('profile', views.profile, name="profile"),
     path('pingjiao', views.pingjiao, name="pingjiao"),
+    path('lan', views.lan, name="lan"),
 
     url(r'mdeditor/', include('mdeditor.urls')),
 ]

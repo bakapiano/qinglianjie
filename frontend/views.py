@@ -70,7 +70,15 @@ def scores(request):
                 scores_dict[term].append([len(scores_dict[term])+1,record[3],record[4],record[5],record[2]])
             scores_list = list(scores_dict.items())
             scores_list.reverse()
+
+    trans = {
+        'Success': '成功',
+        'Fail': '失败',
+        'Pending': '排队中',
+    }
+
     return render(request, 'scores.html', {
+        'status': trans[json_data['type']],
         'fail': fail,
         'scores': scores_list,
         'date': format_date(date.split('.')[0]) if not (date is None) else None,
@@ -352,4 +360,9 @@ def pingjiao(request):
         'fail': fail,
         'empty': len(data)==0,
         'pingjiao_page': True,
+    })
+
+def lan(request):
+    return render(request, "lan.html", {
+        'lan_page': True,
     })

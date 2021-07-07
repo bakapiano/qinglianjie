@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load my_tags %}
+{% block content %}
+    <div class="collapse show" id="refresh_progress">
+        <div class="progress">
+            <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="69"
+                 class="progress-bar progress-bar-striped progress-bar-animated"
+                 style="width: 100%;">
+            </div>
+        </div>
+    </div>
+
+    <div class="main container">
+        <html>
+        <head></head>
+        <body>
+        <div class="mb-5">
+            <div class="mt-3 container">
+                <div class="row">
+                    <div class="mb-3 col-md-6 col-lg-4 col-12">
+                        <a rel="noopener" target="_blank"
+                           href="https://edusys.wvpn.hrbeu.edu.cn/jsxsd/framework/xsMain.jsp"
+                           class="text-decoration-none text-reset">
+                            <div class="card">
+                                <div class="card-body p-2" style="display: flex;">
+                                    <img src="{% static '/img/统一身份认证.jpg' %}" width="50" height="50" class="mr-3 rounded"/>
+                                    <div class="infor-box">
+                                        <div class="text-black font-weight-bold" style="font-size: 0.9rem;">
+                                            统一身份认证
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">edusys.hrbeu.edu.cn</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="mb-3 col-md-6 col-lg-4 col-12">
+                        <a rel="noopener" target="_blank" href="https://www-cnki-net-443.wvpn.hrbeu.edu.cn"
+                           class="text-decoration-none text-reset">
+                            <div class="card">
+                                <!---->
+                                <!---->
+                                <div class="card-body p-2" style="display: flex;">
+                                    <!---->
+                                    <!---->
+                                    <img src="{% static '/img/中国知网.png'%}" width="50" height="50" class="mr-3 rounded"/>
+                                    <div class="infor-box">
+                                        <div class="text-black font-weight-bold" style="font-size: 0.9rem;">
+                                            中国知网
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">cnki.net</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!---->
+                                <!---->
+                            </div>
+                        </a>
+                    </div>
+                    <div class="mb-3 col-md-6 col-lg-4 col-12">
+                        <a rel="noopener" target="_blank" href="https://one.wvpn.hrbeu.edu.cn"
+                           class="text-decoration-none text-reset">
+                            <div class="card">
+                                <!---->
+                                <!---->
+                                <div class="card-body p-2" style="display: flex;">
+                                    <!---->
+                                    <!---->
+                                    <img src="{% static '/img/网上办事中心.jpg' %}" width="50" height="50" class="mr-3 rounded"/>
+                                    <div class="infor-box">
+                                        <div class="text-black font-weight-bold" style="font-size: 0.9rem;">
+                                            网上办事中心
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">one.hrbeu.edu.cn</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!---->
+                                <!---->
+                            </div>
+                        </a>
+                    </div>
+                    <div class="mb-3 col-md-6 col-lg-4 col-12">
+                        <a rel="noopener" target="_blank" href="https://mail.hrbeu.edu.cn"
+                           class="text-decoration-none text-reset">
+                            <div class="card">
+                                <!---->
+                                <!---->
+                                <div class="card-body p-2" style="display: flex;">
+                                    <!---->
+                                    <!---->
+                                    <img src="{% static '/img/邮箱系统.jpg' %}" width="50" height="50" class="mr-3 rounded"/>
+                                    <div class="infor-box">
+                                        <div class="text-black font-weight-bold" style="font-size: 0.9rem;">
+                                            校电子邮箱系统
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">mail.hrbeu.edu.cn</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!---->
+                                <!---->
+                            </div>
+                        </a>
+                    </div>
+                    <div class="mb-3 col-md-6 col-lg-4 col-12">
+                        <a rel="noopener" target="_blank" href="https://qingj.wvpn.hrbeu.edu.cn"
+                           class="text-decoration-none text-reset">
+                            <div class="card">
+                                <!---->
+                                <!---->
+                                <div class="card-body p-2" style="display: flex;">
+                                    <!---->
+                                    <!---->
+                                    <img src="{% static '/img/轻教平台.jpg' %}" width="50" height="50" class="mr-3 rounded"/>
+                                    <div class="infor-box">
+                                        <div class="text-black font-weight-bold" style="font-size: 0.9rem;">
+                                            轻教平台
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">qingj.hrbeu.edu.cn</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!---->
+                                <!---->
+                            </div>
+                        </a>
+                    </div>
+                    <div class="mb-3 col-md-6 col-lg-4 col-12">
+                        <a rel="noopener" target="_blank" href="https://lib.wvpn.hrbeu.edu.cn"
+                           class="text-decoration-none text-reset">
+                            <div class="card">
+                                <!---->
+                                <!---->
+                                <div class="card-body p-2" style="display: flex;">
+                                    <!---->
+                                    <!---->
+                                    <img src="{% static '/img/图书馆.jpg' %}" width="50" height="50" class="mr-3 rounded"/>
+                                    <div class="infor-box">
+                                        <div class="text-black font-weight-bold" style="font-size: 0.9rem;">
+                                            图书馆
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">lib.hrbeu.edu.cn</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!---->
+                                <!---->
+                            </div>
+                        </a>
+                    </div>
+                    <div class="mb-3 col-md-6 col-lg-4 col-12">
+                        <a rel="noopener" target="_blank" href="https://yjs.wvpn.hrbeu.edu.cn/cas/CASLogin.ashx"
+                           class="text-decoration-none text-reset">
+                            <div class="card">
+                                <!---->
+                                <!---->
+                                <div class="card-body p-2" style="display: flex;">
+                                    <!---->
+                                    <!---->
+                                    <img src="{% static '/img/研究生教育培养与服务信息系统.jpg' %}" width="50" height="50" class="mr-3 rounded"/>
+                                    <div class="infor-box">
+                                        <div class="text-black font-weight-bold" style="font-size: 0.9rem;">
+                                            研究生教育培养与服务信息系统
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">yjs.hrbeu.edu.cn</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!---->
+                                <!---->
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </body>
+        </html>
+    </div>
+    <script>
+        window.onload = function () {
+            $('#refresh_progress').collapse('hide');
+
+
+        }
+    </script>
+{% endblock %}

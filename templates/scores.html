@@ -29,6 +29,8 @@
                             <br>
                             更新于: {{ date }}
                         {% endif %}
+                        <br>
+                        任务状态：{{ status }}
                         <hr>
                         <button type="button" class="btn btn-primary btn-sm" id="refresh_scores">获取最新成绩</button>
                         <button type="button" class="btn btn-primary btn-sm" id="calc_avg">计算加权成绩</button>
@@ -228,14 +230,14 @@
              //刷新成绩
             $('#refresh_scores')[0].onclick = function () {
                 $('#refresh_progress').collapse('show');
-                $.get("/api/refresh/scores", function (data) {
+                $.post("/api/my/scores", function (data) {
                     console.log(data);
-                    if (data['status'] == 'SUCCESS') {
+                    if (data['detail'] == '请求刷新成绩成功') {
                         {#$('#modalContent')[0].innerText = "成功发起请求！";#}
                         {#$('#normalModal').modal('show');#}
                         window.setInterval(function () {
-                            $.get("/api/query/scores", function (data) {
-                                if (data['status'] != 'FAILURE') {
+                            $.get("/api/my/scores", function (data) {
+                                if (data['status'] == 'Success') {
                                     $('#modalContent')[0].innerText = "成绩获取成功，正在刷新页面！";
                                     $('#normalModal').modal('show');
                                     setTimeout(function () {
@@ -246,7 +248,7 @@
                             });
                         }, 5000);
                     } else {
-                        $('#modalContent')[0].innerText = "请求刷新成绩失败，可能是请求过于频繁或服务器出现问题！";
+                        $('#modalContent')[0].innerText = data['detail'];
                         $('#normalModal').modal('show');
                         $('#refresh_progress').collapse('hide');
                     }

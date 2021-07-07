@@ -247,11 +247,14 @@
                                 }
                             });
                         }, 5000);
-                    } else {
-                        $('#modalContent')[0].innerText = data['detail'];
-                        $('#normalModal').modal('show');
-                        $('#refresh_progress').collapse('hide');
                     }
+                }).fail(function(res){
+                    console.log(res);
+                    $('#modalContent')[0].innerText = res.responseJSON['detail'];
+                    $('#normalModal').modal('show');
+                    setTimeout(function () {
+                        $('#refresh_progress').collapse('hide');
+                    },1000);
                 });
             };
 

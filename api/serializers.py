@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from api.models import *
 
 
@@ -49,3 +50,25 @@ class GroupInfoSerialize(serializers.ModelSerializer):
     class Meta:
         model = GroupInfo
         fields = ['group_id', "notice_when_xk"]
+
+
+class UserInfoSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['pk', 'username']
+
+
+class CourseCommentSerialize(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    course_id = serializers.CharField(source='course.course_id')
+    course_name = serializers.CharField(source='course.name')
+
+    class Meta:
+        model = CourseComment
+        fields = ['username', 'course_name', 'course_id', 'content', 'created', 'anonymous']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get('anonymous'):
+            data['username'] = "匿名"
+        return data

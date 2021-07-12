@@ -15,7 +15,6 @@ from django.http import QueryDict
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 import lib.heu, time, json
 
-
 # def index(request):
 #     #res = tasks.add.delay(1, 3)
 #     # 任务逻辑

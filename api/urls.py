@@ -41,4 +41,10 @@ urlpatterns = [
 
     path('bot/group', bot_view.GroupInfoListCreate.as_view()),
     path('bot/group/<int:group_id>', bot_view.GroupInfoRetrieveUpdate.as_view()),
+
+    # 用户信息
+    path('user/<str:username>', api_views.UserInfoView.as_view()),
+
+    # 首页最近评论
+    path('recent/comment', api_views.RecentComment.as_view()),
 ]

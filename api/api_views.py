@@ -11,6 +11,8 @@ from qinglianjie.settings import QUERY_INTERVAL
 from api.tasks import *
 from datetime import datetime
 from rest_framework import permissions
+from rest_framework import generics
+from rest_framework import mixins
 
 
 class HEUAccountVerified(permissions.BasePermission):
@@ -188,3 +190,21 @@ class BindQQView(APIView):
         info.qq_id = 0
         info.save()
         return Response({'detail': '成功解绑QQ账号'}, status=status.HTTP_204_NO_CONTENT)
+
+
+# 用户信息
+class UserInfoView(generics.RetrieveAPIView):
+    permission_classes = ()
+    queryset = User.objects.all()
+    serializer_class = UserInfoSerialize
+    lookup_field = "username"
+
+
+# 课程评论
+class RecentComment(generics.ListAPIView):
+    permission_classes = ()
+    queryset = CourseComment.objects.all()[:10]
+    serializer_class = CourseCommentSerialize
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)

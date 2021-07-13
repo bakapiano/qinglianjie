@@ -6,6 +6,9 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from qinglianjie.settings import EMAIL_FROM
 import os, json, django
+import multiprocessing
+
+lock = multiprocessing.Lock()
 
 
 @shared_task
@@ -78,19 +81,23 @@ def do_report(username:str, password:str):
 
 
 @shared_task
-def collect_scores():
+def do_collect_scores(id):
     django.setup()
-    for info in HEUAccountInfo.objects.filter(account_verify_status=True):
-        heu_username = info.heu_username
-        try:
-            crawler = Crawler()
-            crawler.login(info.heu_username, info.heu_password)
-            scores = crawler.getScores()
-        except Exception as e:
-            info.fail_last_time = True
-            info.save()
-            continue
-        print(heu_username)
+    info = HEUAccountInfo.objects.get(id=id)
+
+    # 获取成绩
+    try:
+        crawler = Crawler()
+        crawler.login(info.heu_username, info.heu_password)
+        scores = crawler.getScores()
+    except Exception as e:
+        info.fail_last_time = True
+        info.save()
+        return "Fail"
+
+    # 处理成绩记录
+    try:
+        lock.acquire()
         for record in scores:
             print(record)
             course_id = record[2]
@@ -123,7 +130,7 @@ def collect_scores():
             if record[4] != "---" and course_kind == "正常考试":
                 obj, created = CourseScore.objects.get_or_create(
                     course=course,
-                    heu_username=heu_username,
+                    heu_username=info.heu_username,
                     score=record[4],
                     term=record[1],
                 )
@@ -151,32 +158,28 @@ def collect_scores():
                             print(content)
                             qq_id = QQBindInfo.objects.get(user=info.user).qq_id
                             NoticeTask.objects.get_or_create(
-                                qq_id = qq_id,
-                                content = content
+                                qq_id=qq_id,
+                                content=content
                             )[0].save()
                         except Exception as e:
                             print(e)
                             pass
 
-                    # 出分时邮件发给我！
-                    # if info.mail_when_grade:
-                    #     try:
-                    #         count += 5
-                    #         my_send_mail.apply_async((
-                    #             '%s 出分提醒' % course.name,
-                    #             content,
-                    #             EMAIL_FROM,
-                    #             [info.user.email],
-                    #         ),countdown =count)
-                    #     except Exception as e:
-                    #         # 邮件发送失败:( do nothing
-                    #         print(e)
-                    #         pass
-
         if info.fail_last_time:
             info.fail_last_time = False
             info.save()
 
+    finally:
+        lock.release()
+
+    return "Success"
+
+
+@shared_task
+def collect_scores():
+    django.setup()
+    for info in HEUAccountInfo.objects.filter(account_verify_status=True):
+        do_collect_scores.delay(info.id)
     return "Success"
 
 

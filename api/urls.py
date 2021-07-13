@@ -46,5 +46,8 @@ urlpatterns = [
     path('user/<str:username>', api_views.UserInfoView.as_view()),
 
     # 首页最近评论
-    path('recent/comment', api_views.RecentComment.as_view()),
+    path('recent/comment', api_views.RecentCommentView.as_view()),
+
+    # 首页今日出分
+    path('recent/grade/course', api_views.RecentGradeCourseView.as_view()),
 ]

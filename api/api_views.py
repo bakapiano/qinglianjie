@@ -201,10 +201,21 @@ class UserInfoView(generics.RetrieveAPIView):
 
 
 # 课程评论
-class RecentComment(generics.ListAPIView):
+class RecentCommentView(generics.ListAPIView):
     permission_classes = ()
     queryset = CourseComment.objects.all()[:10]
     serializer_class = CourseCommentSerialize
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+
+# 最近出分
+class RecentGradeCourseView(generics.ListAPIView):
+    permission_classes = ()
+    serializer_class = RecentGradeCourseSerialize
+    queryset = RecentGradeCourse.objects.filter(created__gt=datetime(
+        datetime.now().year,
+        datetime.now().month,
+        datetime.now().day,
+    ))

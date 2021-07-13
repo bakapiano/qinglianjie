@@ -72,3 +72,12 @@ class CourseCommentSerialize(serializers.ModelSerializer):
         if data.get('anonymous'):
             data['username'] = "匿名"
         return data
+
+
+class RecentGradeCourseSerialize(serializers.ModelSerializer):
+    course_id = serializers.CharField(source='course.course_id')
+    course_name = serializers.CharField(source='course.name')
+
+    class Meta:
+        model = RecentGradeCourse
+        fields = ['course_id', 'course_name', 'created']

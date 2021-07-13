@@ -10,6 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'qinglianjie.settings')
 app = Celery('qinglianjie')
 
 # celery  -A qinglianjie  worker -l debug
+# celery  -A qinglianjie  worker -l debug -Q user_worker
 
 # 
 # Using a string here means the worker doesn't have to serialize
@@ -39,6 +40,11 @@ app.conf.beat_schedule = {
         "task": "api.tasks.get_xk_info",
         "schedule": crontab(hour=8, minute=0),
     }
+}
+
+app.conf.task_routes = {
+    'api.tasks.query_scores': {'queue': 'user_worker'},
+    'api.tasks.query_time_table': {'queue': 'user_worker'},
 }
 
 

@@ -5,6 +5,7 @@ from api.models import *
 from django.utils import timezone
 from django.core.mail import send_mail
 from qinglianjie.settings import EMAIL_FROM
+from django.db import transaction
 import os, json, django
 import multiprocessing
 
@@ -99,71 +100,72 @@ def do_collect_scores(id):
     try:
         lock.acquire()
         for record in scores:
-            print(record)
-            course_id = record[2]
-            name = record[3]
-            credit = record[5]
-            total_time = record[6]
-            assessment_method = record[7]
-            course_kind = record[8]
-            attributes = record[9]
-            kind = record[10]
-            general_category = record[11]
+            with transaction.atomic():
+                print(record)
+                course_id = record[2]
+                name = record[3]
+                credit = record[5]
+                total_time = record[6]
+                assessment_method = record[7]
+                course_kind = record[8]
+                attributes = record[9]
+                kind = record[10]
+                general_category = record[11]
 
-            course, created = CourseInfo.objects.get_or_create(
-                course_id=course_id
-            )
-
-            if created:
-                course.name = name
-                course.credit = credit
-                course.total_time = total_time
-                course.assessment_method = assessment_method
-                course.attributes = attributes
-                course.kind = kind
-                course.general_category = general_category
-                course.save()
-
-            # course = CourseInfo.objects.get(course_id=course_id)
-            # print(heu_username, course_id)
-
-            if record[4] != "---" and course_kind == "正常考试":
-                obj, created = CourseScore.objects.get_or_create(
-                    course=course,
-                    heu_username=info.heu_username,
-                    score=record[4],
-                    term=record[1],
+                course, created = CourseInfo.objects.get_or_create(
+                    course_id=course_id
                 )
-                obj.save()
 
-                if (not info.fail_last_time) and created:
-                    recent = RecentGradeCourse.objects.filter(course=course)
-                    flag = True
-                    if len(recent) >= 1:
-                        delta = timezone.now() - recent[0].created
-                        if delta.total_seconds() <= 60 * 60 * 24:
-                            flag = False
-                    if flag:
-                        RecentGradeCourse.objects.create(course=course).save()
+                if created:
+                    course.name = name
+                    course.credit = credit
+                    course.total_time = total_time
+                    course.assessment_method = assessment_method
+                    course.attributes = attributes
+                    course.kind = kind
+                    course.general_category = general_category
+                    course.save()
 
-                    content = \
-                        '课程 %s 出分啦！' % record[3] + \
-                        '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) + \
-                        '如果你不想再收到出分提醒，可以在个人主页里关闭该功能。\n' + \
-                        'Qinglianjie'
+                # course = CourseInfo.objects.get(course_id=course_id)
+                # print(heu_username, course_id)
 
-                    # 出分时qq提醒我！
-                    if info.qq_me_when_grade:
-                        try:
-                            print(content)
-                            qq_id = QQBindInfo.objects.get(user=info.user).qq_id
-                            NoticeTask.objects.get_or_create(
-                                qq_id=qq_id,
-                                content=content
-                            )[0].save()
-                        except Exception as e:
-                            print(e)
-                            pass
+                if record[4] != "---" and course_kind == "正常考试":
+                    obj, created = CourseScore.objects.get_or_create(
+                        course=course,
+                        heu_username=info.heu_username,
+                        score=record[4],
+                        term=record[1],
+                    )
+                    obj.save()
+
+                    if (not info.fail_last_time) and created:
+                        recent = RecentGradeCourse.objects.filter(course=course)
+                        flag = True
+                        if len(recent) >= 1:
+                            delta = timezone.now() - recent[0].created
+                            if delta.total_seconds() <= 60 * 60 * 24:
+                                flag = False
+                        if flag:
+                            RecentGradeCourse.objects.create(course=course).save()
+
+                        content = \
+                            '课程 %s 出分啦！' % record[3] + \
+                            '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) + \
+                            '如果你不想再收到出分提醒，可以在个人主页里关闭该功能。\n' + \
+                            'Qinglianjie'
+
+                        # 出分时qq提醒我！
+                        if info.qq_me_when_grade:
+                            try:
+                                print(content)
+                                qq_id = QQBindInfo.objects.get(user=info.user).qq_id
+                                NoticeTask.objects.get_or_create(
+                                    qq_id=qq_id,
+                                    content=content
+                                )[0].save()
+                            except Exception as e:
+                                print(e)
+                                pass
 
         if info.fail_last_time:
             info.fail_last_time = False

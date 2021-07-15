@@ -206,16 +206,18 @@ class UserInfoView(generics.RetrieveAPIView):
             return Response({'detail': '用户不存在'}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserInfoSerialize(user)
         res = dict(serializer.data)
+
+        url = None
+        try:
+            image = UserProfilePhoto.objects.get_or_create(user=user)[0].image
+            url = image.url
+        except ValueError as e:
+            pass
+        res.update({"image": url,})
+
         if request.user.is_authenticated and username == request.user.username:
-            url = None
-            try:
-                image = UserProfilePhoto.objects.get_or_create(user=user)[0].image
-                url = image.url
-            except ValueError as e:
-                pass
             res.update({
                 "heu_username": HEUAccountInfo.objects.get_or_create(user=user)[0].heu_username,
-                "image": url,
                 "email": user.email,
             })
         return Response(res, status=status.HTTP_200_OK)

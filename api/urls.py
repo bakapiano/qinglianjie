@@ -50,4 +50,6 @@ urlpatterns = [
 
     # 首页今日出分
     path('recent/grade/course', api_views.RecentGradeCourseView.as_view()),
+    
+    path('user/profile/photo', api_views.UserProfilePhotoView.as_view()),
 ]

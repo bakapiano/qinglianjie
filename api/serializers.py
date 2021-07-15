@@ -81,3 +81,9 @@ class RecentGradeCourseSerialize(serializers.ModelSerializer):
     class Meta:
         model = RecentGradeCourse
         fields = ['course_id', 'course_name', 'created']
+
+
+class UserProfilePhotoSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfilePhoto
+        fields = ['image']

@@ -20,6 +20,7 @@ from django.conf import settings ##新增
 from django.conf.urls import url ##新增
 from rest_auth.views import PasswordResetConfirmView
 from django.views.generic import TemplateView
+from django.views.static import serve
 
 urlpatterns = [
     path('api/', include('api.urls')),
@@ -32,6 +33,8 @@ urlpatterns = [
     url(r'^rest-auth/', include('rest_auth.urls')),
     url(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
     url(r'^', include('django.contrib.auth.urls')),
+
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
 

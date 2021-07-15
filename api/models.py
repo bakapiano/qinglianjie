@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import settings
 from django.utils import timezone
-import json
+import json, os
 
 
 class HEUAccountInfo(models.Model):
@@ -168,3 +168,18 @@ class GroupInfo(models.Model):
 
     #选课开始时提醒群
     notice_when_xk = models.BooleanField(default=False)
+
+
+def user_directory_path(instance, filename):
+    ext = filename.split('.').pop()
+    name = filename.split('.')[-2]
+    filename = '{0}_{1}.{2}'.format(instance.user.username, name, ext)
+    return os.path.join("profile", "photo", filename)
+
+
+class UserProfilePhoto(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    image = models.ImageField(
+        os.path.join("profile", "photo"),
+        upload_to=user_directory_path,
+    )

@@ -199,6 +199,21 @@ class UserInfoView(generics.RetrieveAPIView):
     serializer_class = UserInfoSerialize
     lookup_field = "username"
 
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist as e:
+            return Response({'detail': '用户不存在'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserInfoSerialize(user)
+        res = dict(serializer.data)
+        if request.user.is_authenticated and username == request.user.username:
+            res.update({
+                "heu_username": HEUAccountInfo.objects.get_or_create(user=user)[0].heu_username,
+                "image": UserProfilePhoto.objects.get_or_create(user=user)[0].image.url,
+                "email": user.email,
+            })
+        return Response(res, status=status.HTTP_200_OK)
+
 
 # 课程评论
 class RecentCommentView(generics.ListAPIView):
@@ -219,3 +234,36 @@ class RecentGradeCourseView(generics.ListAPIView):
         datetime.now().month,
         datetime.now().day,
     ))
+
+
+# 头像上传
+class UserProfilePhotoView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        info = UserProfilePhoto.objects.get_or_create(user=request.user)[0]
+        serializer = UserProfilePhotoSerialize(info)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # 上传头像
+    def post(self, request):
+        serializer = UserProfilePhotoSerialize(data=request.data)
+        if serializer.is_valid():
+            info, created = UserProfilePhoto.objects.get_or_create(user=request.user)
+            if not created:
+                info.image.delete()
+            print(dict(serializer.validated_data))
+            print(serializer.validated_data)
+            info.image = serializer.validated_data['image']
+            info.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # 删除头像
+    def delete(self, request):
+        info = UserProfilePhoto.objects.get_or_create(user=request.user)[0]
+        info.image.delete()
+        info.save()
+        return Response({'detail': '头像已经删除'}, status=status.HTTP_204_NO_CONTENT)
+

@@ -43,3 +43,4 @@ markdown
 django-rest-framework
 django-rest-auth
 django-cors-headers
+Pillow

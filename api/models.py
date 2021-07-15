@@ -182,4 +182,5 @@ class UserProfilePhoto(models.Model):
     image = models.ImageField(
         os.path.join("profile", "photo"),
         upload_to=user_directory_path,
+        null=True,
     )

@@ -207,9 +207,15 @@ class UserInfoView(generics.RetrieveAPIView):
         serializer = UserInfoSerialize(user)
         res = dict(serializer.data)
         if request.user.is_authenticated and username == request.user.username:
+            url = None
+            try:
+                image = UserProfilePhoto.objects.get_or_create(user=user)[0].image
+                url = image.url
+            except ValueError as e:
+                pass
             res.update({
                 "heu_username": HEUAccountInfo.objects.get_or_create(user=user)[0].heu_username,
-                "image": UserProfilePhoto.objects.get_or_create(user=user)[0].image.url,
+                "image": url,
                 "email": user.email,
             })
         return Response(res, status=status.HTTP_200_OK)

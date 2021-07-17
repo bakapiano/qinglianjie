@@ -57,30 +57,50 @@ class UserInfoSerialize(serializers.ModelSerializer):
         model = User
         fields = ['pk', 'username']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        url = None
+        try:
+            image = UserProfilePhoto.objects.get_or_create(user=instance)[0].image
+            url = image.url
+        except ValueError as e:
+            pass
+        data['image'] = url
+        return data
+
+
+class CourseInfoSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = CourseInfo
+        fields = '__all__'
+
 
 class CourseCommentSerialize(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username')
-    course_id = serializers.CharField(source='course.course_id')
-    course_name = serializers.CharField(source='course.name')
+    user = UserInfoSerialize()
+    course = CourseInfoSerialize()
+    # username = serializers.CharField(source='user.username')
+    # course_id = serializers.CharField(source='course.course_id')
+    # course_name = serializers.CharField(source='course.name')
 
     class Meta:
         model = CourseComment
-        fields = ['username', 'course_name', 'course_id', 'content', 'created', 'anonymous']
+        fields = ['content', 'created', 'anonymous', "course", "user"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if data.get('anonymous'):
-            data['username'] = "匿名"
+            data['user'] = {'username': '匿名',}
         return data
 
 
 class RecentGradeCourseSerialize(serializers.ModelSerializer):
-    course_id = serializers.CharField(source='course.course_id')
-    course_name = serializers.CharField(source='course.name')
+    # course_id = serializers.CharField(source='course.course_id')
+    # course_name = serializers.CharField(source='course.name')
+    course = CourseInfoSerialize()
 
     class Meta:
         model = RecentGradeCourse
-        fields = ['course_id', 'course_name', 'created']
+        fields = ['course', 'created']
 
 
 class UserProfilePhotoSerialize(serializers.ModelSerializer):

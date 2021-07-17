@@ -47,10 +47,10 @@ urlpatterns = [
     path('user/<str:username>', api_views.UserInfoView.as_view()),
 
     # 首页最近评论
-    path('recent/comment', api_views.RecentCommentView.as_view()),
+    path('recent/comments', api_views.RecentCommentView.as_view()),
 
     # 首页今日出分
-    path('recent/grade/course', api_views.RecentGradeCourseView.as_view()),
+    path('recent/grade/courses', api_views.RecentGradeCourseView.as_view()),
     
     # 头像上传
     path('user/profile/photo', api_views.UserProfilePhotoView.as_view()),

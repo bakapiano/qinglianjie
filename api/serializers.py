@@ -78,9 +78,6 @@ class CourseInfoSerialize(serializers.ModelSerializer):
 class CourseCommentSerialize(serializers.ModelSerializer):
     user = UserInfoSerialize()
     course = CourseInfoSerialize()
-    # username = serializers.CharField(source='user.username')
-    # course_id = serializers.CharField(source='course.course_id')
-    # course_name = serializers.CharField(source='course.name')
 
     class Meta:
         model = CourseComment
@@ -94,8 +91,6 @@ class CourseCommentSerialize(serializers.ModelSerializer):
 
 
 class RecentGradeCourseSerialize(serializers.ModelSerializer):
-    # course_id = serializers.CharField(source='course.course_id')
-    # course_name = serializers.CharField(source='course.name')
     course = CourseInfoSerialize()
 
     class Meta:

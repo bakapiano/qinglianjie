@@ -43,6 +43,7 @@ urlpatterns = [
     path('bot/group/<int:group_id>', bot_view.GroupInfoRetrieveUpdate.as_view()),
 
     # 用户信息
+    path('user',api_views.CurrentUserInfoView.as_view()),
     path('user/<str:username>', api_views.UserInfoView.as_view()),
 
     # 首页最近评论
@@ -51,5 +52,11 @@ urlpatterns = [
     # 首页今日出分
     path('recent/grade/course', api_views.RecentGradeCourseView.as_view()),
     
+    # 头像上传
     path('user/profile/photo', api_views.UserProfilePhotoView.as_view()),
+
+    # 课程信息
+    path('course/<str:course_id>', api_views.CourseInfoView.as_view()),
+    path('course/<str:course_id>/comments', api_views.CourseCommentView.as_view(), name="api_course_comment"),
+    path('course/<str:course_id>/statistics', api_views.CourseCommentView.as_view()),
 ]

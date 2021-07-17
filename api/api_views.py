@@ -13,6 +13,7 @@ from datetime import datetime
 from rest_framework import permissions
 from rest_framework import generics
 from rest_framework import mixins
+from django.shortcuts import reverse
 
 
 class HEUAccountVerified(permissions.BasePermission):
@@ -223,6 +224,14 @@ class UserInfoView(generics.RetrieveAPIView):
         return Response(res, status=status.HTTP_200_OK)
 
 
+# 个人信息
+class CurrentUserInfoView(UserInfoView):
+    permission_classes = (IsAuthenticated, )
+    lookup_field = ""
+
+    def get(self, request):
+        return super().get(request, username=self.request.user.username)
+
 # 课程评论
 class RecentCommentView(generics.ListAPIView):
     permission_classes = ()
@@ -275,3 +284,37 @@ class UserProfilePhotoView(APIView):
         info.save()
         return Response({'detail': '头像已经删除'}, status=status.HTTP_204_NO_CONTENT)
 
+
+# 课程详细
+class CourseInfoView(generics.RetrieveAPIView):
+    permission_classes = ()
+    queryset = CourseInfo.objects.all()
+    serializer_class = CourseInfoSerialize
+    lookup_field = "course_id"
+
+    def get(self, request, course_id):
+        try:
+            course = CourseInfo.objects.get(course_id=course_id)
+        except CourseInfo.DoesNotExist as e:
+            return Response({'detail': '未找到。'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CourseInfoSerialize(course)
+        res = dict(serializer.data)
+        comments = [CourseCommentSerialize(comment).data for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+        res.update({
+            "comments": comments,
+            "more_comments": reverse("api_course_comment", kwargs={"course_id": course_id}),
+        })
+        return Response(res, status=status.HTTP_200_OK)
+
+
+
+# 课程评论
+class CourseCommentView(generics.ListAPIView):
+    permission_classes = ()
+    lookup_field = "course_id"
+    serializer_class = CourseCommentSerialize
+
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        queryset = CourseComment.objects.filter(course__course_id=course_id)
+        return queryset

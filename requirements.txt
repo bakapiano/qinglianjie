@@ -37,10 +37,10 @@ wcwidth==0.2.5
 wincertstore==0.2
 zipp==3.4.1
 uwsgi
-pymysql
+pymysql~=1.0.2
 django-mdeditor
-markdown
+markdown~=3.3.4
 django-rest-framework
-django-rest-auth
+django-rest-auth~=0.9.5
 django-cors-headers
 Pillow

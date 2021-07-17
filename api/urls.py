@@ -58,5 +58,8 @@ urlpatterns = [
     # 课程信息
     path('course/<str:course_id>', api_views.CourseInfoView.as_view()),
     path('course/<str:course_id>/comments', api_views.CourseCommentView.as_view(), name="api_course_comment"),
-    path('course/<str:course_id>/statistics', api_views.CourseCommentView.as_view()),
+    path('course/<str:course_id>/statistics', api_views.CourseStatisticsView.as_view()),
+
+    # 课程列表
+    path('courses', api_views.CoursesView.as_view()),
 ]

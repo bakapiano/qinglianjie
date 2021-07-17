@@ -460,6 +460,7 @@ def course_count(request):
     tasks.count_courses.delay()
     return HttpResponse("ok")
 
+
 # Redis
 def remove_last_task_id(task_id):
     conn = get_redis_connection('default')

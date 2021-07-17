@@ -13,6 +13,9 @@ from datetime import datetime
 from rest_framework import permissions
 from rest_framework import generics
 from rest_framework import mixins
+from rest_framework import filters, pagination
+
+
 from django.shortcuts import reverse
 
 
@@ -303,9 +306,67 @@ class CourseInfoView(generics.RetrieveAPIView):
         res.update({
             "comments": comments,
             "more_comments": reverse("api_course_comment", kwargs={"course_id": course_id}),
+            "statistics": get_statistics_result(course_id)
         })
         return Response(res, status=status.HTTP_200_OK)
 
+
+def get_statistics_result(course_id:str):
+    result = {}
+    terms = [obj['term'] for obj in CourseScore.objects.values("term").order_by("term").distinct()]
+    terms.insert(0, 'all')
+
+    for term in terms:
+        result_exam = {}
+        for i in range(0, 101):
+            if term == "all":
+                result_exam.update({
+                    i: CourseScore.objects.filter(
+                        course__course_id=course_id,
+                        score=str(i),
+                    ).count()
+                })
+            else:
+                result_exam.update({
+                    i: CourseScore.objects.filter(
+                        course__course_id=course_id,
+                        score=str(i),
+                        term=term,
+                    ).count()
+                })
+
+        result_test = {}
+        for i in ("不及格", "及格", "中等", "良好", "优秀"):
+            if term == 'all':
+                result_test.update({
+                    i: CourseScore.objects.filter(
+                        course__course_id=course_id,
+                        score=str(i),
+                    ).count()
+                })
+            else:
+                result_test.update({
+                    i: CourseScore.objects.filter(
+                        course__course_id=course_id,
+                        score=str(i),
+                        term=term,
+                    ).count()
+                })
+
+        total = 0
+        for value in result_exam.values():
+            total += value
+        for value in result_test.values():
+            total += value
+
+        result.update({
+            term: {
+                "total": total,
+                "exam": result_exam,
+                "test": result_test,
+            }
+        })
+    return result
 
 
 # 课程评论
@@ -318,3 +379,28 @@ class CourseCommentView(generics.ListAPIView):
         course_id = self.kwargs['course_id']
         queryset = CourseComment.objects.filter(course__course_id=course_id)
         return queryset
+
+
+# 课程统计数据
+class CourseStatisticsView(APIView):
+    permission_classes = ()
+    lookup_field = "course_id"
+
+    def get(self, request, course_id):
+        return Response(get_statistics_result(course_id), status=status.HTTP_200_OK)
+
+
+class CoursePagination(pagination.PageNumberPagination):
+    page_size = 10
+    page_query_param = 'page'
+    page_size_query_param = 'num'
+
+
+# 课程信息
+class CoursesView(generics.ListAPIView):
+    permission_classes = ()
+    queryset = CourseInfo.objects.all().order_by("-count")
+    serializer_class = CourseInfoSerialize
+    filter_backends = [filters.SearchFilter]
+    search_fields = ("course_id", "name")
+    pagination_class = CoursePagination

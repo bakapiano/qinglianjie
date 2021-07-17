@@ -67,6 +67,10 @@ class CourseComment(models.Model):
     created = models.DateTimeField(default=timezone.now)
     anonymous = models.BooleanField(default=False)
 
+    # 展示成绩
+    show = models.BooleanField(default=False)
+    score = models.CharField(max_length=20, default="")
+
     class Meta:
         ordering = ('-created',)
 

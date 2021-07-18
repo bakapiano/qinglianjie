@@ -331,49 +331,43 @@ def get_statistics_result(course_id:str):
     for term in terms:
         result_exam = {}
         for i in range(0, 101):
+            count = 0
             if term == "all":
-                result_exam.update({
-                    i: CourseScore.objects.filter(
-                        course__course_id=course_id,
-                        score=str(i),
-                    ).count()
-                })
+                count = CourseScore.objects.filter(
+                    course__course_id=course_id,
+                    score=str(i),
+                ).count()
             else:
-                result_exam.update({
-                    i: CourseScore.objects.filter(
-                        course__course_id=course_id,
-                        score=str(i),
-                        term=term,
-                    ).count()
-                })
+                count = CourseScore.objects.filter(
+                    course__course_id=course_id,
+                    score=str(i),
+                    term=term,
+                ).count()
+            if count != 0:
+                result_exam.update({i: count})
 
         result_test = {}
         for i in ("不及格", "及格", "中等", "良好", "优秀"):
-            if term == 'all':
-                result_test.update({
-                    i: CourseScore.objects.filter(
-                        course__course_id=course_id,
-                        score=str(i),
-                    ).count()
-                })
+            count = 0
+            if term == "all":
+                count = CourseScore.objects.filter(
+                    course__course_id=course_id,
+                    score=str(i),
+                ).count()
             else:
-                result_test.update({
-                    i: CourseScore.objects.filter(
-                        course__course_id=course_id,
-                        score=str(i),
-                        term=term,
-                    ).count()
-                })
+                count = CourseScore.objects.filter(
+                    course__course_id=course_id,
+                    score=str(i),
+                    term=term,
+                ).count()
+            if count != 0:
+                result_test.update({i: count})
 
         total = 0
-        for key, value in result_exam.items():
+        for value in result_exam.values():
             total += value
-            if value == 0:
-                del result_exam[key]
-        for key, value in result_test.items():
+        for value in result_test.values():
             total += value
-            if value == 0:
-                del result_test[key]
 
         if total != 0 or term == "all":
             result.update({

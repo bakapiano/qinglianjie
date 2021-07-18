@@ -183,12 +183,13 @@ def collect_course_statistics_result():
     try:
         lock.acquire()
         for course in CourseInfo.objects.all():
+            print(course)
             obj = CourseStatisticsResult.objects.get_or_create(course=course)[0]
             obj.result = json.dumps(get_statistics_result(course.course_id))
             obj.save()
     finally:
         lock.release()
-
+    return "Done"
 
 @shared_task
 def collect_scores():

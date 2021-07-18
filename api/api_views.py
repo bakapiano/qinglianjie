@@ -364,10 +364,14 @@ def get_statistics_result(course_id:str):
                 })
 
         total = 0
-        for value in result_exam.values():
+        for key, value in result_exam.items():
             total += value
-        for value in result_test.values():
+            if value == 0:
+                del result_exam[key]
+        for key, value in result_test.items():
             total += value
+            if value == 0:
+                del result_test[key]
 
         if total != 0 or term == "all":
             result.update({

@@ -46,10 +46,10 @@ app.conf.beat_schedule = {
     },
 }
 
-app.conf.task_routes = {
-    'api.tasks.query_scores': {'queue': 'user_worker'},
-    'api.tasks.query_time_table': {'queue': 'user_worker'},
-}
+# app.conf.task_routes = {
+    # 'api.tasks.query_scores': {'queue': 'user_worker'},
+    # 'api.tasks.query_time_table': {'queue': 'user_worker'},
+# }
 
 
 @app.task(bind=True)

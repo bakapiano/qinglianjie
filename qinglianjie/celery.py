@@ -41,7 +41,7 @@ app.conf.beat_schedule = {
         "schedule": crontab(hour=8, minute=0),
     },
     "auto_collect_course_statistics_result" : {
-        "task": "collect_course_statistics_result",
+        "task": "api.tasks.collect_course_statistics_result",
         "schedule": crontab(hour=3, minute=0),
     },
 }

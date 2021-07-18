@@ -369,13 +369,14 @@ def get_statistics_result(course_id:str):
         for value in result_test.values():
             total += value
 
-        result.update({
-            term: {
-                "total": total,
-                "exam": result_exam,
-                "test": result_test,
-            }
-        })
+        if total != 0 or term == "all":
+            result.update({
+                term: {
+                    "total": total,
+                    "exam": result_exam,
+                    "test": result_test,
+                }
+            })
     return result
 
 

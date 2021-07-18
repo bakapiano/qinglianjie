@@ -14,7 +14,7 @@ lock = multiprocessing.Lock()
 
 
 @shared_task
-def query_scores(username:str, password:str):
+def query_scores(username: str, password: str):
     django.setup()
     # ScoreQueryResult.objects.filter(heu_username=username).delete()
     try:

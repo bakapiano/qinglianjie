@@ -113,7 +113,8 @@ class MyTimeTableView(APIView):
             data.status = "Pending"
             data.save()
 
-            query_time_table.delay(info.heu_username, info.heu_password, serializer.validated_data['term'])
+            import api
+            api.tasks.query_time_table.delay(info.heu_username, info.heu_password, serializer.validated_data['term'])
 
             return Response({'detail': '请求刷新课表成功', 'created': data.created.timestamp()}, status=status.HTTP_201_CREATED)
 
@@ -160,7 +161,8 @@ class MyScoresView(APIView):
         data.status = "Pending"
         data.save()
 
-        query_scores.delay(info.heu_username, info.heu_password)
+        import api
+        api.tasks.query_scores.delay(info.heu_username, info.heu_password)
 
         return Response({'detail': '请求刷新成绩成功', 'created': data.created.timestamp()}, status=status.HTTP_201_CREATED)
 

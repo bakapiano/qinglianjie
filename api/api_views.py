@@ -306,9 +306,19 @@ class CourseInfoView(generics.RetrieveAPIView):
         res.update({
             "comments": comments,
             "more_comments": reverse("api_course_comment", kwargs={"course_id": course_id}),
-            "statistics": get_statistics_result(course_id)
+            "statistics": get_statistics_result_from_database(course_id)
         })
         return Response(res, status=status.HTTP_200_OK)
+
+
+def get_statistics_result_from_database(course_id:str):
+    result = {}
+    try:
+        course = CourseInfo.objects.get(course_id=course_id)
+        result = json.loads(CourseStatisticsResult.objects.get_or_create(course=course)[0].result)
+    except Exception as e:
+        pass
+    return result
 
 
 def get_statistics_result(course_id:str):
@@ -387,7 +397,7 @@ class CourseStatisticsView(APIView):
     lookup_field = "course_id"
 
     def get(self, request, course_id):
-        return Response(get_statistics_result(course_id), status=status.HTTP_200_OK)
+        return Response(get_statistics_result_from_database(course_id), status=status.HTTP_200_OK)
 
 
 class CoursePagination(pagination.PageNumberPagination):

@@ -188,3 +188,8 @@ class UserProfilePhoto(models.Model):
         upload_to=user_directory_path,
         null=True,
     )
+
+
+class CourseStatisticsResult(models.Model):
+    course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
+    result = models.TextField(default="")

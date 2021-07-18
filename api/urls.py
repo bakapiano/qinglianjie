@@ -12,6 +12,7 @@ urlpatterns = [
     path('report', views.test_auto_report, name="test_auto_report"),
     path('collect/scores', views.test_collect_scores, name="test_collect_scores"),
     path('collect/xkinfo', views.test_collect_xk_info, name="test_collect_xk_info"),
+    path('collect/course/statistics', views.test_collect_course_statistics, name="test_collect_course_statistics"),
 
     path('query/course_scores', views.query_course_scores, name="query_course_scores"),
     path('query/courses', views.query_course_info, name="query_courses"),

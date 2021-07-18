@@ -8,6 +8,7 @@ from qinglianjie.settings import EMAIL_FROM
 from django.db import transaction
 import os, json, django
 import multiprocessing
+from api.api_views import get_statistics_result
 
 lock = multiprocessing.Lock()
 
@@ -175,6 +176,18 @@ def do_collect_scores(id):
         lock.release()
 
     return "Success"
+
+
+@shared_task
+def collect_course_statistics_result():
+    try:
+        lock.acquire()
+        for course in CourseInfo.objects.all():
+            obj = CourseStatisticsResult.objects.get_or_create(course=course)[0]
+            obj.result = json.dumps(get_statistics_result(course.course_id))
+            obj.save()
+    finally:
+        lock.release()
 
 
 @shared_task

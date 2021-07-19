@@ -21,6 +21,7 @@ from django.conf.urls import url ##新增
 from rest_auth.views import PasswordResetConfirmView
 from django.views.generic import TemplateView
 from django.views.static import serve
+from django.views.decorators.cache import cache_control
 
 urlpatterns = [
     path('api/', include('api.urls')),

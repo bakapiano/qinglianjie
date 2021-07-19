@@ -45,7 +45,7 @@ urlpatterns = [
 
     # 用户信息
     path('user',api_views.CurrentUserInfoView.as_view()),
-    path('user/<str:username>', api_views.UserInfoView.as_view()),
+    path('profile/<str:username>', api_views.UserInfoView.as_view()),
 
     # 首页最近评论
     path('recent/comments', api_views.RecentCommentView.as_view()),

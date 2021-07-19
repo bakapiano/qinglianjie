@@ -198,7 +198,7 @@ class BindQQView(APIView):
         return Response({'detail': '成功解绑QQ账号'}, status=status.HTTP_204_NO_CONTENT)
 
 
-# 用户信息
+# 用户信息 Profile
 class UserInfoView(generics.RetrieveAPIView):
     permission_classes = ()
     queryset = User.objects.all()
@@ -226,9 +226,20 @@ class UserInfoView(generics.RetrieveAPIView):
                 "self": True,
                 "heu_username": HEUAccountInfo.objects.get_or_create(user=user)[0].heu_username,
                 "email": user.email,
+                "comments": [
+                    CourseCommentSerialize(comment).data for comment in CourseComment.objects.filter(user=user)
+                ],
             })
         else:
-            res.update({"self": False})
+            res.update({
+                "self": False,
+                "comments": [
+                    CourseCommentSerialize(comment).data for comment in CourseComment.objects.filter(
+                        user=user,
+                        anonymous=False
+                    )
+                ],
+            })
 
         return Response(res, status=status.HTTP_200_OK)
 

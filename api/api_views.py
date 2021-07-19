@@ -223,9 +223,13 @@ class UserInfoView(generics.RetrieveAPIView):
 
         if request.user.is_authenticated and username == request.user.username:
             res.update({
+                "self": True,
                 "heu_username": HEUAccountInfo.objects.get_or_create(user=user)[0].heu_username,
                 "email": user.email,
             })
+        else:
+            res.update({"self": False})
+
         return Response(res, status=status.HTTP_200_OK)
 
 
@@ -305,6 +309,8 @@ class CourseInfoView(generics.RetrieveAPIView):
         serializer = CourseInfoSerialize(course)
         res = dict(serializer.data)
         comments = [CourseCommentSerialize(comment).data for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+        for comment in comments:
+            del comment['course']
         res.update({
             "comments": comments,
             "more_comments": reverse("api_course_comment", kwargs={"course_id": course_id}),

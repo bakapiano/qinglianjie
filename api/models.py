@@ -193,3 +193,8 @@ class UserProfilePhoto(models.Model):
 class CourseStatisticsResult(models.Model):
     course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
     result = models.TextField(default="")
+
+
+class LastRefreshTimeOfSpecialty(models.Model):
+    specialty = models.CharField(max_length=20)
+    created = models.DateTimeField(default=timezone.now)

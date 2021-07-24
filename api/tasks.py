@@ -21,7 +21,20 @@ def query_scores(username: str, password: str):
         crawler = Crawler()
         crawler.login(username, password)
         res = ScoreQueryResult.objects.get_or_create(heu_username=username)[0]
+
+        try:
+            pre = len(json.loads(res.result))
+        except Exception as e:
+            pre = 0
+
         res.result = json.dumps(crawler.getScores())
+        cur = len(json.loads(res.result))
+
+        # 出分
+        if cur > pre:
+            for info in HEUAccountInfo.objects.filter(heu_username=username):
+                do_collect_scores.delay(info.id)
+
         res.status = "Success"
         res.fail = False
         res.created = timezone.now()
@@ -82,8 +95,21 @@ def do_report(username:str, password:str):
         return str(e)
 
 
+def check_specialty_grade_courses(specialty:str):
+    last, created = LastRefreshTimeOfSpecialty.objects.get_or_create(specialty=specialty)
+    if created or (timezone.now()-last.created).total_seconds() >= 60*30:
+        last.created = timezone.now()
+        last.save()
+        for info in HEUAccountInfo.objects.filter(heu_password__startswith=specialty):
+            do_collect_scores.delay(info.id)
+        return "Successfully create refresh tasks for specialty %s" % specialty
+
+    last.save()
+    return "Refresh interval to short."
+
+
 @shared_task
-def do_collect_scores(id):
+def do_collect_scores(id, refresh_all:bool = False):
     django.setup()
     info = HEUAccountInfo.objects.get(id=id)
 
@@ -149,6 +175,10 @@ def do_collect_scores(id):
                         if flag:
                             RecentGradeCourse.objects.create(course=course).save()
 
+                        # 检查系内出分情况
+                        if not refresh_all:
+                            check_specialty_grade_courses(info.heu_username[:8])
+
                         content = \
                             '课程 %s 出分啦！' % record[3] + \
                             '你的分数是 %s，欢迎到清廉街发表课程评论。\n' % str(record[4]) + \
@@ -195,7 +225,7 @@ def collect_course_statistics_result():
 def collect_scores():
     django.setup()
     for info in HEUAccountInfo.objects.filter(account_verify_status=True):
-        do_collect_scores.delay(info.id)
+        do_collect_scores.delay(info.id, True)
     return "Success"
 
 

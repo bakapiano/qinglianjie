@@ -14,6 +14,7 @@ from rest_framework import permissions
 from rest_framework import generics
 from rest_framework import mixins
 from rest_framework import filters, pagination
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 from django.shortcuts import reverse
@@ -424,11 +425,31 @@ class CoursePagination(pagination.PageNumberPagination):
     page_size_query_param = 'num'
 
 
+class LearnedCoursesFilterBackend(filters.BaseFilterBackend):
+    """
+    筛选学过课程
+    """
+    def filter_queryset(self, request, queryset, view):
+        if (not request.user.is_authenticated) or (request.GET.get("learned") != "true"):
+            return queryset
+
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+        if not info.account_verify_status:
+            return queryset
+
+        heu_username = info.heu_username
+        learned = CourseScore.objects.values_list("course__course_id").filter(heu_username=heu_username)
+
+        return queryset.filter(course_id__in=learned)
+
+
 # 课程信息
 class CoursesView(generics.ListAPIView):
     permission_classes = ()
     queryset = CourseInfo.objects.all().order_by("-count")
     serializer_class = CourseInfoSerialize
-    filter_backends = [filters.SearchFilter]
-    search_fields = ("course_id", "name")
     pagination_class = CoursePagination
+
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, LearnedCoursesFilterBackend]
+    filterset_fields = ('kind', 'credit', 'total_time', 'assessment_method', 'attributes')
+    search_fields = ("course_id", "name")

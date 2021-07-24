@@ -31,9 +31,9 @@ class CourseInfo(models.Model):
     credit = models.CharField(max_length=20)
     #总学时
     total_time = models.CharField(max_length=20)
-    #考察方式 test:考查 exam:考试
+    #考察方式 考查 考试
     assessment_method = models.CharField(max_length=100)
-    #课程属性 compulsory:必修 elective:选修
+    #课程属性 必修 选修
     attributes = models.CharField(max_length=100)
     #课程性质
     kind = models.CharField(max_length=100)

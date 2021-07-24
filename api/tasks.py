@@ -179,7 +179,7 @@ def do_collect_scores(id, not_check_specialty:bool = False):
 
                         # 检查系内出分情况
                         if not not_check_specialty:
-                            print(check_specialty_grade_courses(info.heu_username[:8]))
+                            check_specialty_grade_courses(info.heu_username[:5])
 
                         content = \
                             '课程 %s 出分啦！' % record[3] + \

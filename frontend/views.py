@@ -180,6 +180,7 @@ def bind(request):
             user_info.heu_username = ""
             user_info.heu_password = ""
             user_info.account_verify_status = False
+            user_info.fail_last_time = True
             user_info.save()
             return render(request, "bind.html", {
                 "bind": user_info.account_verify_status,

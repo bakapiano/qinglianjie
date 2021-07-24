@@ -48,9 +48,19 @@ services:
       - mysql
       - redis
 
-  celery:
+  celery_user:
     build: .
-    command: celery -A qinglianjie worker -B -l debug
+    command: celery -A qinglianjie worker -B -l debug -Q user
+    working_dir: /code
+    volumes:
+      - .:/code
+    depends_on:
+      - mysql
+      - redis
+
+  celery_back:
+    build: .
+    command: celery -A qinglianjie worker -B -l debug -Q back
     working_dir: /code
     volumes:
       - .:/code

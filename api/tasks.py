@@ -31,7 +31,8 @@ def query_scores(username: str, password: str):
         cur = len(json.loads(res.result))
 
         # 出分
-        if cur > pre:
+        if cur != pre:
+            print(cur,pre)
             for info in HEUAccountInfo.objects.filter(heu_username=username):
                 do_collect_scores.delay(info.id)
 
@@ -100,8 +101,9 @@ def check_specialty_grade_courses(specialty:str):
     if created or (timezone.now()-last.created).total_seconds() >= 60*30:
         last.created = timezone.now()
         last.save()
-        for info in HEUAccountInfo.objects.filter(heu_password__startswith=specialty):
-            do_collect_scores.delay(info.id)
+        for info in HEUAccountInfo.objects.filter(heu_username__startswith=specialty):
+            print(info.id)
+            do_collect_scores.delay(info.id, True)
         return "Successfully create refresh tasks for specialty %s" % specialty
 
     last.save()
@@ -109,7 +111,7 @@ def check_specialty_grade_courses(specialty:str):
 
 
 @shared_task
-def do_collect_scores(id, refresh_all:bool = False):
+def do_collect_scores(id, not_check_specialty:bool = False):
     django.setup()
     info = HEUAccountInfo.objects.get(id=id)
 
@@ -176,8 +178,8 @@ def do_collect_scores(id, refresh_all:bool = False):
                             RecentGradeCourse.objects.create(course=course).save()
 
                         # 检查系内出分情况
-                        if not refresh_all:
-                            check_specialty_grade_courses(info.heu_username[:8])
+                        if not not_check_specialty:
+                            print(check_specialty_grade_courses(info.heu_username[:8]))
 
                         content = \
                             '课程 %s 出分啦！' % record[3] + \
@@ -281,5 +283,4 @@ def get_xk_info():
                         type="QQ",
                     ).save()
         break
-
     return "Done"

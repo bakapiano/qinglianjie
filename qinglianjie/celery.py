@@ -9,8 +9,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'qinglianjie.settings')
 
 app = Celery('qinglianjie')
 
-# celery  -A qinglianjie  worker -l debug
-# celery  -A qinglianjie  worker -l debug -Q user_worker
+# celery  -A qinglianjie  worker -l debug -Q back
+# celery  -A qinglianjie  worker -l debug -Q user
 
 # 
 # Using a string here means the worker doesn't have to serialize
@@ -46,10 +46,17 @@ app.conf.beat_schedule = {
     },
 }
 
-# app.conf.task_routes = {
-    # 'api.tasks.query_scores': {'queue': 'user_worker'},
-    # 'api.tasks.query_time_table': {'queue': 'user_worker'},
-# }
+app.conf.task_routes = {
+    'api.tasks.query_scores': {'queue': 'user'},
+    'api.tasks.query_time_table': {'queue': 'user'},
+    'api.tasks.report_daily': {'queue': 'back'},
+    'api.tasks.do_report': {'queue': 'back'},
+    'api.tasks.do_collect_scores': {'queue': 'back'},
+    'api.tasks.collect_course_statistics_result': {'queue': 'back'},
+    'api.tasks.collect_scores': {'queue': 'back'},
+    'api.tasks.count_courses': {'queue': 'back'},
+    'api.tasks.get_xk_info': {'queue': 'back'},
+}
 
 
 @app.task(bind=True)

@@ -157,7 +157,7 @@ class MyScoresView(APIView):
             if delta.total_seconds() <= QUERY_INTERVAL:
                 return Response({'detail': '请求过于频繁！'}, status=status.HTTP_400_BAD_REQUEST)
 
-        data.result = "{}"
+        # data.result = "{}"
         data.created = timezone.now()
         data.status = "Pending"
         data.save()

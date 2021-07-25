@@ -452,7 +452,7 @@ class CourseCommentView(generics.ListAPIView):
                 created=timezone.now(),
                 anonymous=serializer.validated_data['anonymous'],
                 show=serializer.validated_data['show'],
-                score=serializer.validated_data['score'],
+                score=serializer.validated_data['score'] if serializer.validated_data['show'] else "",
             ).save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:

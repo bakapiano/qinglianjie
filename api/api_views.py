@@ -16,12 +16,12 @@ from rest_framework import mixins
 from rest_framework import filters, pagination
 from django_filters.rest_framework import DjangoFilterBackend
 
-
 from django.shortcuts import reverse
 
 
 class HEUAccountVerified(permissions.BasePermission):
     message = "需要先绑定HEU账号"
+
     def has_permission(self, request, view):
         flag = True
         try:
@@ -45,6 +45,7 @@ class HEUAccountView(APIView):
 
     # 绑定HEU账号
     def post(self, request):
+        print(request.data)
         serializer = HEUAccountSerializer(data=request.data)
         if serializer.is_valid():
             if not verify(serializer.validated_data['heu_username'], serializer.validated_data['heu_password']):
@@ -101,7 +102,7 @@ class MyTimeTableView(APIView):
         if not created:
             last_refresh_time = data.created
 
-        if not(last_refresh_time is None):
+        if not (last_refresh_time is None):
             delta = timezone.now() - last_refresh_time
             if delta.total_seconds() <= QUERY_INTERVAL:
                 return Response({'detail': '请求过于频繁！'}, status=status.HTTP_400_BAD_REQUEST)
@@ -152,7 +153,7 @@ class MyScoresView(APIView):
         if not created:
             last_refresh_time = data.created
 
-        if not(last_refresh_time is None):
+        if not (last_refresh_time is None):
             delta = timezone.now() - last_refresh_time
             if delta.total_seconds() <= QUERY_INTERVAL:
                 return Response({'detail': '请求过于频繁！'}, status=status.HTTP_400_BAD_REQUEST)
@@ -170,7 +171,7 @@ class MyScoresView(APIView):
 
 # 绑定qq
 class BindQQView(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     # 获取当前绑定的QQ账号信息
     def get(self, request):
@@ -220,7 +221,7 @@ class UserInfoView(generics.RetrieveAPIView):
             url = image.url
         except ValueError as e:
             pass
-        res.update({"image": url,})
+        res.update({"image": url, })
 
         if request.user.is_authenticated and username == request.user.username:
             res.update({
@@ -247,11 +248,12 @@ class UserInfoView(generics.RetrieveAPIView):
 
 # 个人信息
 class CurrentUserInfoView(UserInfoView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     lookup_field = ""
 
     def get(self, request):
         return super().get(request, username=self.request.user.username)
+
 
 # 课程评论
 class RecentCommentView(generics.ListAPIView):
@@ -320,7 +322,8 @@ class CourseInfoView(generics.RetrieveAPIView):
             return Response({'detail': '未找到。'}, status=status.HTTP_404_NOT_FOUND)
         serializer = CourseInfoSerialize(course)
         res = dict(serializer.data)
-        comments = [CourseCommentSerialize(comment).data for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+        comments = [CourseCommentSerialize(comment).data for comment in
+                    CourseComment.objects.filter(course__course_id=course_id)[:10]]
         for comment in comments:
             del comment['course']
         res.update({
@@ -328,10 +331,24 @@ class CourseInfoView(generics.RetrieveAPIView):
             "more_comments": reverse("api_course_comment", kwargs={"course_id": course_id}),
             "statistics": get_statistics_result_from_database(course_id)
         })
+
+        if request.user.is_authenticated:
+            info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+            print(info.heu_username)
+            scores = [record.score for record in CourseScore.objects.filter(
+                heu_username=info.heu_username,
+                course__course_id=course_id
+            )]
+            if len(scores) == 0:
+                scores = None
+            res.update({"my_scores": scores})
+        else:
+            res.update({"my_scores": None})
+
         return Response(res, status=status.HTTP_200_OK)
 
 
-def get_statistics_result_from_database(course_id:str):
+def get_statistics_result_from_database(course_id: str):
     result = {}
     try:
         course = CourseInfo.objects.get(course_id=course_id)
@@ -341,7 +358,7 @@ def get_statistics_result_from_database(course_id:str):
     return result
 
 
-def get_statistics_result(course_id:str):
+def get_statistics_result(course_id: str):
     result = {}
     terms = [obj['term'] for obj in CourseScore.objects.values("term").order_by("term").distinct()]
     terms.insert(0, 'all')
@@ -409,6 +426,38 @@ class CourseCommentView(generics.ListAPIView):
         queryset = CourseComment.objects.filter(course__course_id=course_id)
         return queryset
 
+    class CreateCourseSerialize(serializers.ModelSerializer):
+        class Meta:
+            model = CourseComment
+            fields = ['content', 'anonymous', "show", "score"]
+
+    def post(self, request, course_id):
+        if not request.user.is_authenticated:
+            return Response({'detail': '身份认证信息未提供。'}, status=status.HTTP_403_FORBIDDEN)
+
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+        if request.data.get('show') == True and CourseScore.objects.filter(
+                course__course_id=course_id,
+                heu_username=info.heu_username,
+                score=request.data.get('score'),
+        ).count() == 0:
+            return Response({'detail': '没查到该分数记录。'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.CreateCourseSerialize(data=request.data)
+        if serializer.is_valid():
+            CourseComment.objects.create(
+                user=request.user,
+                course=CourseInfo.objects.get(course_id=course_id),
+                content=serializer.validated_data['content'],
+                created=timezone.now(),
+                anonymous=serializer.validated_data['anonymous'],
+                show=serializer.validated_data['show'],
+                score=serializer.validated_data['score'],
+            ).save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # 课程统计数据
 class CourseStatisticsView(APIView):
@@ -429,6 +478,7 @@ class LearnedCoursesFilterBackend(filters.BaseFilterBackend):
     """
     筛选学过课程
     """
+
     def filter_queryset(self, request, queryset, view):
         if (not request.user.is_authenticated) or (request.GET.get("learned") != "true"):
             return queryset
@@ -443,7 +493,7 @@ class LearnedCoursesFilterBackend(filters.BaseFilterBackend):
         return queryset.filter(course_id__in=learned)
 
 
-# 课程信息
+# 课程筛选页面
 class CoursesView(generics.ListAPIView):
     permission_classes = ()
     queryset = CourseInfo.objects.all().order_by("-count")

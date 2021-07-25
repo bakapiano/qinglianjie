@@ -69,7 +69,7 @@ class CourseComment(models.Model):
 
     # 展示成绩
     show = models.BooleanField(default=False)
-    score = models.CharField(max_length=20, default="")
+    score = models.CharField(max_length=20, default="", blank=True)
 
     class Meta:
         ordering = ('-created',)

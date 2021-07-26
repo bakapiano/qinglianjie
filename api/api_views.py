@@ -58,6 +58,9 @@ class HEUAccountView(APIView):
             info.fail_last_time = True
             info.save()
 
+            from api.tasks import do_collect_scores
+            do_collect_scores.delay(info.id, True)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -434,6 +437,11 @@ class CourseCommentView(generics.ListAPIView):
     def post(self, request, course_id):
         if not request.user.is_authenticated:
             return Response({'detail': '身份认证信息未提供。'}, status=status.HTTP_403_FORBIDDEN)
+
+        from qinglianjie.settings import COURSE_COMMENT_INTERVAL
+        if CourseComment.objects.filter(user=request.user).count() > 0 and \
+                (timezone.now() - CourseComment.objects.filter(user=request.user).first().created).total_seconds() <= COURSE_COMMENT_INTERVAL:
+            return Response({'detail': '评论间隔限制为 %s 秒' % str(COURSE_COMMENT_INTERVAL)}, status=status.HTTP_400_BAD_REQUEST)
 
         info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
         if request.data.get('show') == True and CourseScore.objects.filter(

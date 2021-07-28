@@ -31,6 +31,7 @@ urlpatterns = [
     path('grade/notify', login_required(views.MailWhenGradeView.as_view()),
                                         name="grade_notify"),
 
+    # 新版api
     path('HEUAccount', api_views.HEUAccountView.as_view(), name="HEUAccount"),
     path('my/timetable', api_views.MyTimeTableView.as_view(), name="my_timetable"),
     path('my/scores', api_views.MyScoresView.as_view(), name="my_scores"),
@@ -63,4 +64,6 @@ urlpatterns = [
 
     # 课程列表
     path('courses', api_views.CoursesView.as_view()),
+    path('comment/<int:pk>',api_views.CourseCommentDetailView.as_view()),
+
 ]

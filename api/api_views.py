@@ -511,3 +511,24 @@ class CoursesView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, LearnedCoursesFilterBackend]
     filterset_fields = ('kind', 'credit', 'total_time', 'assessment_method', 'attributes')
     search_fields = ("course_id", "name")
+
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Write permissions are only allowed to the owner of the snippet.
+        return obj.user == request.user
+
+
+class CourseCommentDetailView(generics.RetrieveDestroyAPIView):
+    permission_classes = (IsOwnerOrReadOnly, )
+    queryset = CourseComment.objects.all()
+    serializer_class = CourseCommentSerialize

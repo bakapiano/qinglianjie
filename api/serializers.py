@@ -81,7 +81,7 @@ class CourseCommentSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = CourseComment
-        fields = ['content', 'created', 'anonymous', "course", "user", "show", "score"]
+        fields = ['id', 'content', 'created', 'anonymous', "course", "user", "show", "score"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

@@ -210,7 +210,7 @@ class UserInfoView(generics.RetrieveAPIView):
     serializer_class = UserInfoSerialize
     lookup_field = "username"
 
-    def get(self, request, username):
+    def get(self, request, username, show_comment=True):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist as e:
@@ -233,7 +233,7 @@ class UserInfoView(generics.RetrieveAPIView):
                 "email": user.email,
                 "comments": [
                     CourseCommentSerialize(comment).data for comment in CourseComment.objects.filter(user=user)
-                ],
+                ] if show_comment else [],
             })
         else:
             res.update({
@@ -243,8 +243,11 @@ class UserInfoView(generics.RetrieveAPIView):
                         user=user,
                         anonymous=False
                     )
-                ],
+                ] if show_comment else [],
             })
+
+        if not show_comment:
+            del res['comments']
 
         return Response(res, status=status.HTTP_200_OK)
 
@@ -255,7 +258,7 @@ class CurrentUserInfoView(UserInfoView):
     lookup_field = ""
 
     def get(self, request):
-        return super().get(request, username=self.request.user.username)
+        return super().get(request, username=self.request.user.username, show_comment=False)
 
 
 # 课程评论
@@ -265,8 +268,7 @@ class RecentCommentView(generics.ListAPIView):
     serializer_class = CourseCommentSerialize
 
     def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
+       return self.list(request, *args, **kwargs)
 
 # 最近出分
 class RecentGradeCourseView(generics.ListAPIView):
@@ -325,8 +327,10 @@ class CourseInfoView(generics.RetrieveAPIView):
             return Response({'detail': '未找到。'}, status=status.HTTP_404_NOT_FOUND)
         serializer = CourseInfoSerialize(course)
         res = dict(serializer.data)
-        comments = [CourseCommentSerialize(comment).data for comment in
-                    CourseComment.objects.filter(course__course_id=course_id)[:10]]
+        comments = [{
+                **CourseCommentSerialize(comment).data,
+                **({'self': request.user == comment.user} if request.user.is_authenticated else {}),}
+            for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
         for comment in comments:
             del comment['course']
         res.update({
@@ -434,6 +438,13 @@ class CourseCommentView(generics.ListAPIView):
             model = CourseComment
             fields = ['content', 'anonymous', "show", "score"]
 
+    def get(self, request, course_id):
+        comments = [{
+                **CourseCommentSerialize(comment).data,
+                **({'self': request.user == comment.user} if request.user.is_authenticated else {}),}
+            for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+        return Response(comments, status=status.HTTP_200_OK)
+
     def post(self, request, course_id):
         if not request.user.is_authenticated:
             return Response({'detail': '身份认证信息未提供。'}, status=status.HTTP_403_FORBIDDEN)
@@ -517,7 +528,6 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     """
     Custom permission to only allow owners of an object to edit it.
     """
-
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request,
         # so we'll always allow GET, HEAD or OPTIONS requests.

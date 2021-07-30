@@ -442,7 +442,7 @@ class CourseCommentView(generics.ListAPIView):
         comments = [{
                 **CourseCommentSerialize(comment).data,
                 **({'self': request.user == comment.user} if request.user.is_authenticated else {}),}
-            for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+            for comment in CourseComment.objects.filter(course__course_id=course_id)]
         return Response(comments, status=status.HTTP_200_OK)
 
     def post(self, request, course_id):

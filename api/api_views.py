@@ -330,7 +330,7 @@ class CourseInfoView(generics.RetrieveAPIView):
         comments = [{
                 **CourseCommentSerialize(comment).data,
                 **({'self': request.user == comment.user} if request.user.is_authenticated else {}),}
-            for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+            for comment in CourseComment.objects.filter(course__course_id=course_id)]
         for comment in comments:
             del comment['course']
         res.update({

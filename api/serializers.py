@@ -102,3 +102,9 @@ class UserProfilePhotoSerialize(serializers.ModelSerializer):
     class Meta:
         model = UserProfilePhoto
         fields = ['image']
+
+
+class TaskInfoSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = TaskInfo
+        fields = ['user', 'title', 'description', 'status', "additional_info", "created"]

@@ -14,13 +14,13 @@ lock = multiprocessing.Lock()
 
 
 @shared_task
-def query_scores(username: str, password: str):
+def query_scores(id, task_info_id):
     django.setup()
-    # ScoreQueryResult.objects.filter(heu_username=username).delete()
+    info = HEUAccountInfo.objects.get(id=id)
     try:
         crawler = Crawler()
-        crawler.login(username, password)
-        res = ScoreQueryResult.objects.get_or_create(heu_username=username)[0]
+        crawler.login(info.heu_username, info.heu_password)
+        res = ScoreQueryResult.objects.get_or_create(heu_username=info.heu_username)[0]
 
         try:
             pre = len(json.loads(res.result))
@@ -33,44 +33,75 @@ def query_scores(username: str, password: str):
         # 出分
         if cur != pre:
             print(cur,pre)
-            for info in HEUAccountInfo.objects.filter(heu_username=username):
+            for info in HEUAccountInfo.objects.filter(heu_username=info.heu_username):
                 do_collect_scores.delay(info.id)
 
         res.status = "Success"
         res.fail = False
         res.created = timezone.now()
         res.save()
+
+        TaskInfo.objects.filter(id=task_info_id).update(
+            title="刷新我的成绩",
+            status="Success",
+            user=info.user,
+        )
+        return "Success"
+
     except Exception as e:
-        res = ScoreQueryResult.objects.get_or_create(heu_username=username)[0]
+        res = ScoreQueryResult.objects.get_or_create(heu_username=info.heu_username)[0]
         res.status = "Fail"
         res.fail = True
         res.created = timezone.now()
         res.save()
-        print(e)
+
+        TaskInfo.objects.filter(id=task_info_id).update(
+            title="刷新我的成绩",
+            status="Fail",
+            user=info.user,
+            additional_info="刷新成绩失败，可能是HEU账号密码错误或是学校服务器出现问题!",
+            exception=str(e),
+        )
         return "Fail"
-    return "Success"
 
 
 @shared_task
-def query_time_table(username:str, password:str, term:str):
+def query_time_table(id, term:str, task_info_id):
     django.setup()
-    # TimetableQueryResult.objects.filter(heu_username=username).delete()
+    info = HEUAccountInfo.objects.get(id=id)
     try:
         crawler = Crawler()
-        crawler.login(username, password)
-        res = TimetableQueryResult.objects.get_or_create(heu_username=username)[0]
+        crawler.login(info.heu_username, info.heu_password)
+        res = TimetableQueryResult.objects.get_or_create(heu_username=info.heu_username)[0]
         res.result = json.dumps(crawler.getTermTimetable(term))
         res.status = "Success"
         res.fail = False
         res.created = timezone.now()
         res.save()
+
+        TaskInfo.objects.filter(id=task_info_id).update(
+            title="刷新我的课表",
+            description="%s 学期" % term,
+            status="Success",
+            user=info.user,
+        )
+
     except Exception as e:
-        res = TimetableQueryResult.objects.get_or_create(heu_username=username)[0]
+        res = TimetableQueryResult.objects.get_or_create(heu_username=info.heu_username)[0]
         res.status = "Fail"
         res.fail = True
         res.created = timezone.now()
         res.save()
         print(e)
+
+        TaskInfo.objects.filter(id=task_info_id).update(
+            title="刷新我的课表",
+            description="%s 学期" % term,
+            status="Fail",
+            user=info.user,
+            additional_info="刷新课表失败，可能是HEU账号密码错误或是学校服务器出现问题!",
+            exception=str(e),
+        )
         return "Fail"
 
     return "Success"
@@ -81,18 +112,32 @@ def report_daily():
     django.setup()
     for info in HEUAccountInfo.objects.filter(report_daily=True, account_verify_status=True):
         print(HEUAccountInfo.heu_username)
-        do_report.delay(info.heu_username, info.heu_password)
+        do_report.delay(info.id, "每日自动报备")
     return "Done"
 
 
 @shared_task
-def do_report(username:str, password:str):
+def do_report(id, task_title):
+    info = HEUAccountInfo.objects.get_or_create(id=id)[0]
     try:
         crawler = Crawler()
-        crawler.login_one(username, password)
+        crawler.login_one(info.heu_username, info.heu_password)
         crawler.report()
+        TaskInfo.objects.create(
+            title=task_title,
+            status="Success",
+            user=info.user,
+        ).save()
         return "Success"
+
     except Exception as e:
+        TaskInfo.objects.create(
+            title=task_title,
+            status="Fail",
+            user=info.user,
+            exception=str(e),
+            additional_info="报备失败，可能是HEU账号密码错误或是学校服务器出现问题!",
+        ).save()
         return str(e)
 
 
@@ -120,9 +165,21 @@ def do_collect_scores(id, not_check_specialty:bool = False):
         crawler = Crawler()
         crawler.login(info.heu_username, info.heu_password)
         scores = crawler.getScores()
+        TaskInfo.objects.create(
+            title="清廉街后台收集分数",
+            status="Success",
+            user=info.user,
+        ).save()
     except Exception as e:
         info.fail_last_time = True
         info.save()
+        TaskInfo.objects.create(
+            title="清廉街后台收集分数",
+            status="Fail",
+            user=info.user,
+            exception=str(e),
+            additional_info="清廉街后台收集分数失败，可能是HEU账号密码错误或是学校服务器出现问题!",
+        ).save()
         return "Fail"
 
     # 处理成绩记录
@@ -255,9 +312,9 @@ def get_xk_info():
             continue
         for record in result:
             obj, created = XKInfo.objects.get_or_create(
-                term = record[0],
-                title = record[1],
-                time = record[2],
+                term=record[0],
+                title=record[1],
+                time=record[2],
             )
 
             if created:

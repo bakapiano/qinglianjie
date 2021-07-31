@@ -12,7 +12,6 @@ from api.tasks import *
 from datetime import datetime
 from rest_framework import permissions
 from rest_framework import generics
-from rest_framework import mixins
 from rest_framework import filters, pagination
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -92,7 +91,11 @@ class MyTimeTableView(APIView):
         serializer = MyTimeTableSerializer(data)
         res = dict(serializer.data)
         res.update({"created": data.created.timestamp()})
-        res.update({"result": json.loads(data.result)})
+        try:
+            res.update({"result": json.loads(data.result)})
+        except Exception as e:
+            res.update({"result": {}})
+
         return Response(res, status=status.HTTP_200_OK)
 
     # 请求刷新课表
@@ -118,8 +121,17 @@ class MyTimeTableView(APIView):
             data.status = "Pending"
             data.save()
 
+            task_info = TaskInfo.objects.create(
+                title="刷新我的课表",
+                description="%s 学期" % serializer.validated_data['term'],
+                status="Pending",
+                user=info.user,
+            )
+            task_info.save()
+            print(info, id)
+
             import api
-            api.tasks.query_time_table.delay(info.heu_username, info.heu_password, serializer.validated_data['term'])
+            api.tasks.query_time_table.delay(info.id, serializer.validated_data['term'], task_info.id)
 
             return Response({'detail': '请求刷新课表成功', 'created': data.created.timestamp()}, status=status.HTTP_201_CREATED)
 
@@ -143,7 +155,10 @@ class MyScoresView(APIView):
         serializer = MyScoresSerializer(data)
         res = dict(serializer.data)
         res.update({"created": data.created.timestamp()})
-        res.update({"result": json.loads(data.result)})
+        try:
+            res.update({"result": json.loads(data.result)})
+        except Exception as e:
+            res.update({"result": {}})
         return Response(res, status=status.HTTP_200_OK)
 
     # 请求刷新成绩
@@ -166,8 +181,15 @@ class MyScoresView(APIView):
         data.status = "Pending"
         data.save()
 
+        task_info = TaskInfo.objects.create(
+            title="刷新我的成绩",
+            status="Pending",
+            user=info.user,
+        )
+        task_info.save()
+
         import api
-        api.tasks.query_scores.delay(info.heu_username, info.heu_password)
+        api.tasks.query_scores.delay(info.id, task_info.id)
 
         return Response({'detail': '请求刷新成绩成功', 'created': data.created.timestamp()}, status=status.HTTP_201_CREATED)
 
@@ -262,23 +284,29 @@ class CurrentUserInfoView(UserInfoView):
 
 
 # 课程评论
-class RecentCommentView(generics.ListAPIView):
+class RecentCommentView(APIView):
     permission_classes = ()
-    queryset = CourseComment.objects.all()[:10]
-    serializer_class = CourseCommentSerialize
 
-    def get(self, request, *args, **kwargs):
-       return self.list(request, *args, **kwargs)
+    def get(self, request):
+        comments = [{
+            **CourseCommentSerialize(comment).data,
+            **({'self': request.user == comment.user} if request.user.is_authenticated else {}), }
+            for comment in CourseComment.objects.all()[:10]]
+        return Response(comments, status=status.HTTP_200_OK)
+
 
 # 最近出分
-class RecentGradeCourseView(generics.ListAPIView):
+class RecentGradeCourseView(APIView):
     permission_classes = ()
-    serializer_class = RecentGradeCourseSerialize
-    queryset = RecentGradeCourse.objects.filter(created__gt=datetime(
-        datetime.now().year,
-        datetime.now().month,
-        datetime.now().day,
-    ))
+
+    def get(self, request):
+        res = [RecentGradeCourseSerialize(record).data for
+               record in RecentGradeCourse.objects.filter(created__gt=datetime(
+                datetime.now().year,
+                datetime.now().month,
+                datetime.now().day,
+            ))]
+        return Response(res, status=status.HTTP_200_OK)
 
 
 # 头像上传
@@ -330,7 +358,7 @@ class CourseInfoView(generics.RetrieveAPIView):
         comments = [{
                 **CourseCommentSerialize(comment).data,
                 **({'self': request.user == comment.user} if request.user.is_authenticated else {}),}
-            for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+            for comment in CourseComment.objects.filter(course__course_id=course_id)]
         for comment in comments:
             del comment['course']
         res.update({
@@ -442,7 +470,7 @@ class CourseCommentView(generics.ListAPIView):
         comments = [{
                 **CourseCommentSerialize(comment).data,
                 **({'self': request.user == comment.user} if request.user.is_authenticated else {}),}
-            for comment in CourseComment.objects.filter(course__course_id=course_id)[:10]]
+            for comment in CourseComment.objects.filter(course__course_id=course_id)]
         return Response(comments, status=status.HTTP_200_OK)
 
     def post(self, request, course_id):
@@ -542,3 +570,56 @@ class CourseCommentDetailView(generics.RetrieveDestroyAPIView):
     permission_classes = (IsOwnerOrReadOnly, )
     queryset = CourseComment.objects.all()
     serializer_class = CourseCommentSerialize
+
+
+class PingjiaoView(APIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified)
+
+    def get(self, request):
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+        try:
+            crawler = Crawler()
+            crawler.login_pingjiao(info.heu_username, info.heu_password)
+            res = crawler.pingjiao(True)
+        except Exception as e:
+            return Response({'detail': '获取未评教课程时出现错误，可能是HEU账号密码错误或者学校评教服务器故障！'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'todo': res
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+        try:
+            crawler = Crawler()
+            crawler.login_pingjiao(info.heu_username, info.heu_password)
+            res = crawler.pingjiao(False)
+        except Exception as e:
+            TaskInfo.objects.create(
+                title="一键评教",
+                status="Fail",
+                user=info.user,
+                additional_info='一键评教时出现错误，可能是HEU账号密码错误或者学校评教服务器故障！',
+                exception=str(e),
+            ).save()
+            return Response({'detail': '一键评教时出现错误，可能是HEU账号密码错误或者学校评教服务器故障！'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        TaskInfo.objects.create(
+            title="一键评教",
+            description=",".join(res)+"已评教完成！",
+            status="Success",
+            user=info.user,
+        ).save()
+        return Response({
+            'detail': '一键评教成功！',
+            'done': res,
+        }, status=status.HTTP_200_OK)
+
+
+class TaskInfoView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        tasks = [TaskInfoSerialize(task).data for task in TaskInfo.objects.filter(user=request.user)]
+        return Response(tasks, status=status.HTTP_200_OK)

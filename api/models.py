@@ -198,3 +198,17 @@ class CourseStatisticsResult(models.Model):
 class LastRefreshTimeOfSpecialty(models.Model):
     specialty = models.CharField(max_length=20)
     created = models.DateTimeField(default=timezone.now)
+
+
+# 后台任务信息
+class TaskInfo(models.Model):
+    title = models.CharField(max_length=20)
+    description = models.CharField(max_length=100)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Pending")
+    additional_info = models.CharField(max_length=100, default="", blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created = models.DateTimeField(default=timezone.now)
+    exception = models.TextField(default="", blank=True)
+
+    class Meta:
+        ordering = ('-created',)

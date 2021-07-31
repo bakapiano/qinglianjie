@@ -25,8 +25,8 @@ urlpatterns = [
     path('course/comment/remove', views.remove_my_comment, name="remove_my_comment"),
     path('course/recent', views.recent_grade_course, name="recent_grade_course"),
 
-    path('pingjiao', views.pingjiao, name="query_pingjiao"),
-    path('pingjiao/do', views.do_pingjiao, name="do_pingjiao"),
+    # path('pingjiao', views.pingjiao, name="query_pingjiao"),
+    # path('pingjiao/do', views.do_pingjiao, name="do_pingjiao"),
 
     path('grade/notify', login_required(views.MailWhenGradeView.as_view()),
                                         name="grade_notify"),
@@ -66,4 +66,9 @@ urlpatterns = [
     path('courses', api_views.CoursesView.as_view()),
     path('comment/<int:pk>',api_views.CourseCommentDetailView.as_view()),
 
+    # 评教
+    path('pingjiao', api_views.PingjiaoView.as_view()),
+
+    # 任务
+    path('tasks', api_views.TaskInfoView.as_view()),
 ]

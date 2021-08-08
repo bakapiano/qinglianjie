@@ -108,3 +108,9 @@ class TaskInfoSerialize(serializers.ModelSerializer):
     class Meta:
         model = TaskInfo
         fields = ['user', 'title', 'description', 'status', "additional_info", "created"]
+
+
+class ReportTaskSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = ReportTask
+        fields = ['pk', 'time', 'status']

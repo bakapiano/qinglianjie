@@ -212,3 +212,23 @@ class TaskInfo(models.Model):
 
     class Meta:
         ordering = ('-created',)
+
+
+REPORT_TASK_STATUS_CHOICES = (('Waiting', 'Waiting'), ('Fail', 'Fail'), ('Success', 'Success'))
+
+
+class ReportTask(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    time = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=10, choices=REPORT_TASK_STATUS_CHOICES, default="Waiting")
+
+    class Meta:
+        ordering = ('-time',)
+
+
+class LastReportTime(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    time = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ('-time',)

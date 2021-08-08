@@ -47,6 +47,9 @@ class HEUAccountView(APIView):
         print(request.data)
         serializer = HEUAccountSerializer(data=request.data)
         if serializer.is_valid():
+            if HEUAccountInfo.objects.filter(heu_username=serializer.validated_data['heu_username']).count() != 0:
+                return Response({'detail': '该HEU账号已被绑定！'}, status=status.HTTP_400_BAD_REQUEST)
+
             if not verify(serializer.validated_data['heu_username'], serializer.validated_data['heu_password']):
                 return Response({'detail': 'HEU账号验证失败'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -623,3 +626,106 @@ class TaskInfoView(APIView):
     def get(self, request):
         tasks = [TaskInfoSerialize(task).data for task in TaskInfo.objects.filter(user=request.user)]
         return Response(tasks, status=status.HTTP_200_OK)
+
+
+class ReportTasksView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified)
+
+    class ReportTaskPostSerialize(serializers.ModelSerializer):
+        class Meta:
+            model = ReportTask
+            fields = ['time']
+
+    serializer_class = ReportTaskPostSerialize
+    queryset = []
+
+    def get(self, request):
+        tasks = [ReportTaskSerialize(task).data for task in ReportTask.objects.filter(user=request.user)]
+        return Response(tasks, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        from qinglianjie.settings import MAX_REPORT_TASKS_NUM
+        if ReportTask.objects.filter(user=request.user, status="Waiting").count() >= MAX_REPORT_TASKS_NUM:
+            return Response({"detail": "报备任务个数上限为：%d" % MAX_REPORT_TASKS_NUM}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ReportTasksView.ReportTaskPostSerialize(data=request.data)
+        if serializer.is_valid():
+            time = serializer.validated_data["time"]
+            now = timezone.now()
+
+            invalid_time = False
+            if time.year < now.year:
+                invalid_time = True
+            elif time.month < now.month:
+                invalid_time = True
+            elif time.day <= now.day:
+                invalid_time = True
+            if invalid_time:
+                return Response({"detail": "无效时间！"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if ReportTask.objects.filter(
+                    user=request.user,
+                    time__year=time.year,
+                    time__month=time.month,
+                    time__day=time.day,
+            ).count() != 0 :
+                return Response({"detail": "已经存在同样的任务！"}, status=status.HTTP_400_BAD_REQUEST)
+
+            ReportTask.objects.create(
+                user=request.user,
+                time=time,
+                status="Waiting"
+            ).save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class IsOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.user == request.user
+
+
+class ReportTaskDetailView(generics.RetrieveDestroyAPIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified, IsOwner, )
+    queryset = ReportTask.objects.all()
+    serializer_class = ReportTaskSerialize
+
+
+class ReportNowView(APIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified, )
+
+    def post(self, request):
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+
+        last_post_time = None
+        data, created = LastReportTime.objects.get_or_create(user=request.user)
+        if not created:
+            last_post_time = data.time
+
+        if not (last_post_time is None):
+            delta = timezone.now() - last_post_time
+            if delta.total_seconds() <= QUERY_INTERVAL:
+                return Response({'detail': '请求过于频繁！'}, status=status.HTTP_400_BAD_REQUEST)
+
+        data.time = timezone.now()
+        data.save()
+
+        try:
+            crawler = Crawler()
+            crawler.login_one(info.heu_username, info.heu_password)
+            crawler.report()
+            TaskInfo.objects.create(
+                title="立即报备",
+                status="Success",
+                user=info.user,
+            ).save()
+            return Response({'detail': '立即报备成功！',}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            TaskInfo.objects.create(
+                title="立即报备",
+                status="Fail",
+                user=info.user,
+            ).save()
+            return Response({"立即报备失败！"}, status=status.HTTP_400_BAD_REQUEST)

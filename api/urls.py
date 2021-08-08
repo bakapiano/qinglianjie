@@ -9,7 +9,7 @@ urlpatterns = [
     path('refresh/timetable', views.refresh_time_table, name="refresh_time_table"),
 
     #测试用
-    path('report', views.test_auto_report, name="test_auto_report"),
+    path('auto/report', views.test_auto_report, name="test_auto_report"),
     path('collect/scores', views.test_collect_scores, name="test_collect_scores"),
     path('collect/xkinfo', views.test_collect_xk_info, name="test_collect_xk_info"),
     path('collect/course/statistics', views.test_collect_course_statistics, name="test_collect_course_statistics"),
@@ -71,4 +71,9 @@ urlpatterns = [
 
     # 任务
     path('tasks', api_views.TaskInfoView.as_view()),
+
+    #报备
+    path('report/task', api_views.ReportTasksView.as_view()),
+    path('report/task/<int:pk>', api_views.ReportTaskDetailView.as_view()),
+    path('report', api_views.ReportNowView.as_view()),
 ]

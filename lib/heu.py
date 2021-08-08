@@ -181,8 +181,6 @@ class Crawler:
         print(result)
         return result
 
-
-
     def report(self):
         import time, json
         from lib.form import report_str
@@ -229,6 +227,7 @@ class Crawler:
                 "remark": "",
             }
         )
+        print(res)
 
     def pingjiao(self, check=False):
         token = self.session.cookies['token']

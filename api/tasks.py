@@ -113,21 +113,37 @@ def report_daily():
     for info in HEUAccountInfo.objects.filter(report_daily=True, account_verify_status=True):
         print(HEUAccountInfo.heu_username)
         do_report.delay(info.id, "每日自动报备")
+    now = timezone.now()
+    for task in ReportTask.objects.filter(
+        time__year=now.year,
+        time__month=now.month,
+        time__day=now.day,
+        status="Waiting",
+    ):
+        info = HEUAccountInfo.objects.get_or_create(user=task.info)
+        do_report.delay(info.id, "定时报备任务", task.id)
     return "Done"
 
 
 @shared_task
-def do_report(id, task_title):
+def do_report(id, task_title, report_task_id = None):
     info = HEUAccountInfo.objects.get_or_create(id=id)[0]
     try:
         crawler = Crawler()
         crawler.login_one(info.heu_username, info.heu_password)
         crawler.report()
+
         TaskInfo.objects.create(
             title=task_title,
             status="Success",
             user=info.user,
         ).save()
+
+        if report_task_id != None:
+            task = ReportTask.objects.get(id=report_task_id)
+            task.status = "Success"
+            task.save()
+
         return "Success"
 
     except Exception as e:
@@ -138,6 +154,12 @@ def do_report(id, task_title):
             exception=str(e),
             additional_info="报备失败，可能是HEU账号密码错误或是学校服务器出现问题!",
         ).save()
+
+        if report_task_id != None:
+            task = ReportTask.objects.get(id=report_task_id)
+            task.status = "Fail"
+            task.save()
+
         return str(e)
 
 

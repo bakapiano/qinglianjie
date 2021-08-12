@@ -120,7 +120,7 @@ def report_daily():
         time__day=now.day,
         status="Waiting",
     ):
-        info = HEUAccountInfo.objects.get_or_create(user=task.info)
+        info = HEUAccountInfo.objects.get_or_create(user=task.user)
         do_report.delay(info.id, "定时报备任务", task.id)
     return "Done"
 

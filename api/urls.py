@@ -85,7 +85,7 @@ urlpatterns = [
     path('articles', api_views.ArticleView.as_view()),
 
     #平安行动
-    path('pingan', api_views.PinganView.as_view()),
+    path('pingan/daily', api_views.PinganView.as_view()),
     path('pingan/tasks', api_views.PinganTasksView.as_view()),
 
 ]

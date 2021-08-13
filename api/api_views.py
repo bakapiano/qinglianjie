@@ -739,14 +739,14 @@ class ReportDailyView(APIView):
     permission_classes = (IsAuthenticated, HEUAccountVerified,)
 
     def get(self, request):
-        return Response(HEUAccountInfo.objects.get_or_create(user=request.user)[0].report_daily,
+        return Response({"report_daily": HEUAccountInfo.objects.get_or_create(user=request.user)[0].report_daily},
                         status=status.HTTP_200_OK)
 
     def post(self, request):
         info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
         info.report_daily = not info.report_daily
         info.save()
-        return Response(info.report_daily, status=status.HTTP_201_CREATED)
+        return Response({"report_daily": info.report_daily}, status=status.HTTP_201_CREATED)
 
 
 @ratelimit(key="user_or_ip", rate="30/m", method=ALL)
@@ -774,14 +774,14 @@ class PinganView(APIView):
     permission_classes = (IsAuthenticated, HEUAccountVerified,)
 
     def get(self, request):
-        return Response(HEUAccountInfo.objects.get_or_create(user=request.user)[0].pingan_daily,
+        return Response({"pingan_daily": HEUAccountInfo.objects.get_or_create(user=request.user)[0].pingan_daily},
                         status=status.HTTP_200_OK)
 
     def post(self, request):
         info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
         info.pingan_daily = not info.pingan_daily
         info.save()
-        return Response(info.pingan_daily, status=status.HTTP_201_CREATED)
+        return Response({"pingan_daily": info.pingan_daily}, status=status.HTTP_201_CREATED)
 
 
 class PinganTasksView(APIView):

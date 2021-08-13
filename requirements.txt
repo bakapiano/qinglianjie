@@ -45,3 +45,4 @@ django-rest-auth~=0.9.5
 django-cors-headers
 Pillow
 django-filter
+django-ratelimit

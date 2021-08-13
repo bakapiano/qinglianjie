@@ -1,5 +1,5 @@
 from api.models import *
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,6 +14,7 @@ from rest_framework import permissions
 from rest_framework import generics
 from rest_framework import filters, pagination
 from django_filters.rest_framework import DjangoFilterBackend
+from ratelimit.decorators import ratelimit, ALL
 
 from django.shortcuts import reverse
 
@@ -260,6 +261,9 @@ class UserInfoView(generics.RetrieveAPIView):
                     CourseCommentSerialize(comment).data for comment in CourseComment.objects.filter(user=user)
                 ] if show_comment else [],
             })
+            if show_comment:
+                for comment in res["comments"]:
+                    comment["self"] = True
         else:
             res.update({
                 "self": False,
@@ -729,3 +733,61 @@ class ReportNowView(APIView):
                 user=info.user,
             ).save()
             return Response({"立即报备失败！"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReportDailyView(APIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified,)
+
+    def get(self, request):
+        return Response(HEUAccountInfo.objects.get_or_create(user=request.user)[0].report_daily,
+                        status=status.HTTP_200_OK)
+
+    def post(self, request):
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+        info.report_daily = not info.report_daily
+        info.save()
+        return Response(info.report_daily, status=status.HTTP_201_CREATED)
+
+
+@ratelimit(key="user_or_ip", rate="30/m", method=ALL)
+def test_connect(request, name):
+    site_dict = {
+        "one": "https://cas.hrbeu.edu.cn/cas/login#/",
+        "pingjiao": "https://cas.hrbeu.edu.cn/cas/login?service=http://pjcs.hrbeu.edu.cn/login/return?type=mobile#/",
+        "cas-443": "https://cas-443.wvpn.hrbeu.edu.cn/cas/login#/",
+        "edusys": "https://edusys.wvpn.hrbeu.edu.cn/jsxsd/kscj/cjcx_list",
+    }
+    if name == "list":
+        return JsonResponse(site_dict)
+    elif name in site_dict.keys():
+        return JsonResponse({"status": requests.get(url=site_dict[name]).ok})
+    else:
+        raise Http404("No such site")
+
+
+class ArticleView(generics.ListAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerialize
+
+
+class PinganView(APIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified,)
+
+    def get(self, request):
+        return Response(HEUAccountInfo.objects.get_or_create(user=request.user)[0].pingan_daily,
+                        status=status.HTTP_200_OK)
+
+    def post(self, request):
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+        info.pingan_daily = not info.pingan_daily
+        info.save()
+        return Response(info.pingan_daily, status=status.HTTP_201_CREATED)
+
+
+class PinganTasksView(APIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified,)
+
+    def get(self, request):
+        return Response([ TaskInfoSerialize(task).data for task in
+                          TaskInfo.objects.filter(user=request.user, title="每日平安行动")],
+                        status=status.HTTP_200_OK)

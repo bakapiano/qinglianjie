@@ -75,5 +75,17 @@ urlpatterns = [
     #报备
     path('report/task', api_views.ReportTasksView.as_view()),
     path('report/task/<int:pk>', api_views.ReportTaskDetailView.as_view()),
+    path('report/daily', api_views.ReportDailyView.as_view()),
     path('report', api_views.ReportNowView.as_view()),
+
+    #测试连通性
+    path('test/<str:name>', api_views.test_connect),
+
+    #首页公告版
+    path('articles', api_views.ArticleView.as_view()),
+
+    #平安行动
+    path('pingan', api_views.PinganView.as_view()),
+    path('pingan/tasks', api_views.PinganTasksView.as_view()),
+
 ]

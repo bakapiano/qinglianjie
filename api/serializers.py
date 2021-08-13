@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from api.models import *
-
+import markdown
 
 class HEUAccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -114,3 +114,17 @@ class ReportTaskSerialize(serializers.ModelSerializer):
     class Meta:
         model = ReportTask
         fields = ['pk', 'time', 'status']
+
+
+class ArticleSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = ['pk', 'title', 'body', 'created']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['body'] = markdown.markdown(data['body'], extensions=[
+            'markdown.extensions.extra',
+            'markdown.extensions.toc',
+        ])
+        return data

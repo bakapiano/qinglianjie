@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import settings
 from django.utils import timezone
+from mdeditor.fields import MDTextField
 import json, os
 
 
@@ -17,6 +18,8 @@ class HEUAccountInfo(models.Model):
     mail_when_grade = models.BooleanField(default=False)
 
     qq_me_when_grade = models.BooleanField(default=False)
+
+    pingan_daily = models.BooleanField(default=False)
 
     def __str__(self):
         return " ".join([str(self.user), self.heu_username])
@@ -232,3 +235,15 @@ class LastReportTime(models.Model):
 
     class Meta:
         ordering = ('-time',)
+
+
+class Article(models.Model):
+    title = models.CharField(max_length=100)
+    body = MDTextField()
+    created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ('-created',)
+
+    def __str__(self):
+        return self.title

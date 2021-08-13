@@ -17,5 +17,5 @@ urlpatterns = [
     path('pingjiao', views.pingjiao, name="pingjiao"),
     path('lan', views.lan, name="lan"),
 
-    url(r'mdeditor/', include('mdeditor.urls')),
+    # url(r'mdeditor/', include('mdeditor.urls')),
 ]

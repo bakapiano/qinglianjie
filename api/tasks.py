@@ -363,3 +363,40 @@ def get_xk_info():
                     ).save()
         break
     return "Done"
+
+
+@shared_task
+def pingan_daily():
+    django.setup()
+    for info in HEUAccountInfo.objects.filter(pingan_daily=True, account_verify_status=True):
+        print(HEUAccountInfo.heu_username)
+        do_pingan.delay(info.id, "平安行动")
+    return "Done"
+
+
+@shared_task
+def do_pingan(id, task_title):
+    info = HEUAccountInfo.objects.get_or_create(id=id)[0]
+    try:
+        crawler = Crawler()
+        crawler.login_one(info.heu_username, info.heu_password)
+        url = crawler.pingan()
+
+        TaskInfo.objects.create(
+            title=task_title,
+            status="Success",
+            description=url,
+            additional_info="每日自动平安行动",
+            user=info.user,
+        ).save()
+        return "Success"
+
+    except Exception as e:
+        TaskInfo.objects.create(
+            title=task_title,
+            status="Fail",
+            user=info.user,
+            exception=str(e),
+            additional_info="每日自动平安行动提交失败，可能是HEU账号密码错误或是学校服务器出现问题!",
+        ).save()
+        return str(e)

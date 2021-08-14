@@ -178,7 +178,7 @@ class Crawler:
             if len(contents) == 4:
                 result.append(contents)
             # print(contents)
-        print(result)
+        # print(result)
         return result
 
     def report(self):
@@ -194,8 +194,8 @@ class Crawler:
             "formData": r'{"_VAR_URL":"http://one.hrbeu.edu.cn/infoplus/form/JCXBBJSP/start","_VAR_URL_Attr":"{}"}',
         })
         url = json.loads(res.text)["entities"][0]
+        # print(url)
         report_id = url.split("/")[-2]
-
         res = self.session.get(url)
 
         csrf = self.get_csrf_token(res.text)
@@ -227,7 +227,10 @@ class Crawler:
                 "remark": "",
             }
         )
-        print(res)
+        errno = json.loads(res.text)["errno"]
+        if errno != 0:
+            raise Exception("进出校失败")
+        return url
 
     def pingjiao(self, check=False):
         token = self.session.cookies['token']
@@ -269,6 +272,76 @@ class Crawler:
                 )
 
         return done_list
+
+
+    def pingan(self):
+        import time, json
+        from lib.form import pingan_str
+        # res = self.session.get("http://one.hrbeu.edu.cn/infoplus/form/JKXXSB/start")
+        # print(self.get_csrf_token(res.text))
+        res = self.session.get("http://jkgc.hrbeu.edu.cn/infoplus/form/JSXNYQSBtest/start")
+        csrf = self.get_csrf_token(res.text)
+        self.session.headers.update({
+            "Host": "jkgc.hrbeu.edu.cn",
+            "Origin": "http://jkgc.hrbeu.edu.cn",
+            "Referer": "http://jkgc.hrbeu.edu.cn/infoplus/form/JSXNYQSBtest/start",
+        })
+        res = self.session.post("http://one.hrbeu.edu.cn/infoplus/interface/start", data={
+            "csrfToken": csrf,
+            "idc": "JSXNYQSBtest",
+            "release": "",
+            "formData": r'{"_VAR_URL":"http://jkgc.hrbeu.edu.cn/infoplus/form/JSXNYQSBtest/start","_VAR_URL_Attr":"{}"}',
+        })
+
+        # print(res.text)
+        print(res.text)
+        url = json.loads(res.text)["entities"][0]
+        pingan_id = url.split("/")[-2]
+
+        res = self.session.get(url)
+        csrf = self.get_csrf_token(res.text)
+
+        self.session.headers.update({
+            "Host": "jkgc.hrbeu.edu.cn",
+            "Origin": "http://jkgc.hrbeu.edu.cn",
+            "Referer": "http://jkgc.hrbeu.edu.cn/infoplus/form/%s/render" % pingan_id,
+        })
+        res = self.session.post(
+            url="http://jkgc.hrbeu.edu.cn/infoplus/interface/render",
+            data={
+                "stepId": pingan_id,
+                "instanceId": "",
+                "rand": "12.321321",
+                "width": "459",
+                "lang": "en",
+                "csrfToken": csrf,
+            }
+        )
+        data = json.loads(res.text)["entities"][0]["data"]
+        post_data = json.loads(pingan_str)
+        # for key in data.keys():
+        #     if key in post_data.keys():
+        #         del post_data[key]
+        post_data.update(data)
+        res = self.session.post(
+            url="http://jkgc.hrbeu.edu.cn/infoplus/interface/doAction",
+            data={
+                "actionId": "1",
+                "formData": str(post_data),
+                "remark": "",
+                "rand": "114.541",
+                "nextUsers": "{}",
+                "stepId": pingan_id,
+                "timestamp": int(time.time()),
+                "boundFields": "fieldCXXXdqszdjtx,fieldCXXXsftjhb,fieldCXXXdqszdqtxq,fieldGLFS,fieldFHJH,fieldJBXXjjlxrdh,fieldSTQKfrtw,fieldCXXXjtfslc,fieldJBXXlxfs,fieldYQJLsfjcqtbl,fieldHGCZDM,fieldYQJLgrjkm,fieldCXXXfxcfdhsj,fieldYC,fieldSTQKfl,fieldCXXXsftjwh,fieldZAxq,fieldSTQKhxkn,fieldLHFrom,fieldFLid,fieldYQJLjrsfczbl,fieldDQWZmqszdyq,fieldSQSJ,fieldZAjtwz,fieldSTQKgm,fieldDQLJSshi,fieldSTQKfx,fieldSTQKfs,fieldCXXXjtfsdb,fieldCXXXcxzt,fieldCXXXdqszdstx,fieldCXXXsftjhbs,fieldGLSJFrom,fieldSFLB,fieldYQJLdqljs,fieldLHTo,fieldZAshi,fieldHGCSULY,fieldJBXXdw,fieldCFDD,fieldCXXXsftjhbjtdz,fieldCXXXjtgjbc,fieldGLJL,fieldMQJCRxh,fieldSTQKqt,fieldYQJLjrsfczbldqzt,fieldCXXXjtfsqtms,fieldCXXXjtfsfj,fieldJBXXxm,fieldZXZT,fieldCXXXsftjhbq2,fieldMQJCRxm,fieldCXXXsftjhbq,fieldSTQKqtms,fieldJBXXxb,fieldCXXXjtfspc,fieldCXXXssh,fieldLHTJSX,fieldZAsheng,fieldDQLJSyc,fieldJBXXgh,fieldCNS,fieldCXXXfxxq,fieldDQLJSxq,fieldSTQKqtqksm,fieldGLSJTo,fieldJBXXjjlxr,fieldCXXXfxcfsj,fieldMQJCRcjdd,fieldDQLJSqu,fieldSTQKks,fieldJBXXcsny,fieldCXXXdqszdshengtx,fieldCXXXjtzzq,fieldLHJH,fieldCXXXdqszd,fieldCXXXjtzzs,fieldCXXXdqszdqtx,fieldCXXXjtfshc,fieldCXXXsftjhbs2,fieldSTQKsfstbs,fieldCXXXsftjhbs1,fieldCXXXcqwdq,fieldCXXXjtfszj,fieldZAqu,fieldDQLJSsheng,fieldZAZT,fieldCXXXjtzz,fieldCXXXjtfsqt,fieldMQJCRlxfs",
+                "csrfToken": csrf,
+                "lang": "en",
+            }
+        )
+        errno = json.loads(res.text)["errno"]
+        if errno != 0:
+            raise Exception("提交平安行动失败")
+        return url
 
 
 if __name__ == "__main__":

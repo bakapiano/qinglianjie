@@ -195,6 +195,15 @@ def test_auto_report(request):
     return JsonResponse({"status": "No permission."})
 
 
+@login_required
+@heu_account_verify_required
+def test_auto_pingan(request):
+    if request.user.is_superuser:
+        tasks.pingan_daily.delay()
+        return JsonResponse({"status": "Success."})
+    return JsonResponse({"status": "No permission."})
+
+
 def test_collect_scores(request):
     if request.user.is_superuser:
         collect_scores.delay()

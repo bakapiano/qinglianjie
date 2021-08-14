@@ -24,25 +24,29 @@ app.conf.timezone = "Asia/Shanghai"
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    "auto_report": {
-        "task": "api.tasks.report_daily",
-        "schedule": crontab(hour=7, minute=0),
-    },
+    # "auto_report": {
+    #     "task": "api.tasks.report_daily",
+    #     "schedule": crontab(hour=7, minute=0),
+    # },
     "auto_collect": {
         "task": "api.tasks.collect_scores",
-        "schedule": crontab(hour=7, minute=30),
+        "schedule": crontab(hour=0, minute=30),
     },
     "auto_count_courses": {
         "task": "api.tasks.count_courses",
         "schedule": crontab(hour=12, minute=0),
     },
-    "auto_get_xk_info": {
-        "task": "api.tasks.get_xk_info",
-        "schedule": crontab(hour=8, minute=0),
-    },
+    # "auto_get_xk_info": {
+    #     "task": "api.tasks.get_xk_info",
+    #     "schedule": crontab(hour=8, minute=0),
+    # },
     "auto_collect_course_statistics_result" : {
         "task": "api.tasks.collect_course_statistics_result",
         "schedule": crontab(hour=3, minute=0),
+    },
+    "auto_pingan" : {
+        "task": "api.tasks.pingan_daily",
+        "schedule": crontab(hour=6, minute=0),
     },
 }
 
@@ -56,6 +60,8 @@ app.conf.task_routes = {
     'api.tasks.collect_scores': {'queue': 'back'},
     'api.tasks.count_courses': {'queue': 'back'},
     'api.tasks.get_xk_info': {'queue': 'back'},
+    'api.tasks.do_pingan': {'queue': 'back'},
+    'api.tasks.pingan_daily': {'queue': 'back'},
 }
 
 

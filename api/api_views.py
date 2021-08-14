@@ -1,4 +1,6 @@
 from django.views.decorators.cache import cache_page
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+
 from api.models import *
 from django.http import Http404, JsonResponse
 from rest_framework.views import APIView
@@ -29,7 +31,7 @@ class HEUAccountVerified(permissions.BasePermission):
             flag = HEUAccountInfo.objects.get(user=request.user).account_verify_status
         except Exception as e:
             flag = False
-        print("fuck", flag)
+        # print("fuck", flag)
         return flag
 
 
@@ -697,25 +699,16 @@ class ReportTaskDetailView(generics.RetrieveDestroyAPIView):
     serializer_class = ReportTaskSerialize
 
 
+class ReportPinganUserRateThrottle(UserRateThrottle):
+    THROTTLE_RATES = {"user": "2/min"}
+
+
 class ReportNowView(APIView):
     permission_classes = (IsAuthenticated, HEUAccountVerified, )
+    throttle_classes = [ReportPinganUserRateThrottle]
 
     def post(self, request):
         info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
-
-        last_post_time = None
-        data, created = LastReportTime.objects.get_or_create(user=request.user)
-        if not created:
-            last_post_time = data.time
-
-        if not (last_post_time is None):
-            delta = timezone.now() - last_post_time
-            if delta.total_seconds() <= QUERY_INTERVAL:
-                return Response({'detail': '请求过于频繁！'}, status=status.HTTP_400_BAD_REQUEST)
-
-        data.time = timezone.now()
-        data.save()
-
         try:
             crawler = Crawler()
             crawler.login_one(info.heu_username, info.heu_password)
@@ -793,5 +786,34 @@ class PinganTasksView(APIView):
 
     def get(self, request):
         return Response([ TaskInfoSerialize(task).data for task in
-                          TaskInfo.objects.filter(user=request.user, title="每日平安行动")],
+                          TaskInfo.objects.filter(user=request.user, title="平安行动")],
                         status=status.HTTP_200_OK)
+
+
+class PinganNowView(APIView):
+    permission_classes = (IsAuthenticated, HEUAccountVerified, )
+    throttle_classes = [ReportPinganUserRateThrottle]
+
+    def post(self, request):
+        info = HEUAccountInfo.objects.get_or_create(user=request.user)[0]
+        try:
+            crawler = Crawler()
+            crawler.login_one(info.heu_username, info.heu_password)
+            url = crawler.pingan()
+            TaskInfo.objects.create(
+                title="平安行动",
+                status="Success",
+                description=url,
+                user=info.user,
+                additional_info="立即平安行动"
+            ).save()
+            return Response({'detail': '提交平安行动成功！',}, status=status.HTTP_200_OK)
+        except Exception as e:
+            TaskInfo.objects.create(
+                title="平安行动",
+                status="Fail",
+                user=info.user,
+                additional_info="立即平安行动提交失败，可能是HEU账号密码错误或是学校服务器出现问题!",
+            ).save()
+            print(e)
+            return Response({"提交平安行动失败！"}, status=status.HTTP_400_BAD_REQUEST)

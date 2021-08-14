@@ -1,5 +1,8 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
 from . import views, api_views, bot_view
 
 urlpatterns = [
@@ -10,6 +13,7 @@ urlpatterns = [
 
     #测试用
     path('auto/report', views.test_auto_report, name="test_auto_report"),
+    path('auto/pingan', views.test_auto_pingan, name="test_auto_pingan"),
     path('collect/scores', views.test_collect_scores, name="test_collect_scores"),
     path('collect/xkinfo', views.test_collect_xk_info, name="test_collect_xk_info"),
     path('collect/course/statistics', views.test_collect_course_statistics, name="test_collect_course_statistics"),
@@ -87,5 +91,5 @@ urlpatterns = [
     #平安行动
     path('pingan/daily', api_views.PinganView.as_view()),
     path('pingan/tasks', api_views.PinganTasksView.as_view()),
-
+    path('pingan', api_views.PinganNowView.as_view()),
 ]

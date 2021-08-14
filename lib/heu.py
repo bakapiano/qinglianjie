@@ -43,7 +43,10 @@ class Crawler:
             'execution': execution,
         }
         res = self.session.post("https://cas-443.wvpn.hrbeu.edu.cn/cas/login", data=data)
-        if username not in self.session.get("https://edusys.wvpn.hrbeu.edu.cn/jsxsd/framework/main.jsp").text:
+
+        res = self.session.get("https://edusys.wvpn.hrbeu.edu.cn/jsxsd/framework/main.jsp")
+        # print(res.url)
+        if (username not in res.text) or (res.url!="https://edusys.wvpn.hrbeu.edu.cn/jsxsd/framework/xsMain.jsp?url=/framework/main.jsp"):
             raise Exception("Incorrect username or password!")
 
         return self
@@ -345,4 +348,6 @@ class Crawler:
 
 
 if __name__ == "__main__":
+    t = Crawler()
+    t.login("a","a")
     exit(0)

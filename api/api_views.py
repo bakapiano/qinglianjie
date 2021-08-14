@@ -1,3 +1,4 @@
+from django.views.decorators.cache import cache_page
 from api.models import *
 from django.http import Http404, JsonResponse
 from rest_framework.views import APIView
@@ -748,8 +749,8 @@ class ReportDailyView(APIView):
         info.save()
         return Response({"report_daily": info.report_daily}, status=status.HTTP_201_CREATED)
 
-
-@ratelimit(key="user_or_ip", rate="30/m", method=ALL)
+# @ratelimit(key="user_or_ip", rate="30/m", method=ALL)
+@cache_page(60*5)
 def test_connect(request, name):
     site_dict = {
         "one": "https://cas.hrbeu.edu.cn/cas/login#/",
@@ -759,8 +760,11 @@ def test_connect(request, name):
     }
     if name == "list":
         return JsonResponse(site_dict)
-    elif name in site_dict.keys():
-        return JsonResponse({"status": requests.get(url=site_dict[name]).ok})
+    elif name == "result":
+        result = {}
+        for key,value in site_dict.items():
+            result[key] = requests.get(url=value).ok
+        return JsonResponse({"result": result})
     else:
         raise Http404("No such site")
 

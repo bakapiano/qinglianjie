@@ -116,7 +116,7 @@ class TimetableQueryResult(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Pending")
 
     def set_result(self, value):
-        self.result = json.jumps(value)
+        self.result = json.dumps(value)
 
     def get_result(self):
         return json.loads(self.result)
@@ -172,9 +172,11 @@ class XKInfo(models.Model):
 
 class GroupInfo(models.Model):
     group_id = models.BigIntegerField(default=0)
-
     #选课开始时提醒群
     notice_when_xk = models.BooleanField(default=False)
+
+    def __str__(self):
+        return " ".join((str(self.group_id), self.notice_when_xk))
 
 
 def user_directory_path(instance, filename):
@@ -192,10 +194,16 @@ class UserProfilePhoto(models.Model):
         null=True,
     )
 
+    def __str__(self):
+        return str(self.user)
+
 
 class CourseStatisticsResult(models.Model):
     course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
     result = models.TextField(default="")
+
+    def __str__(self):
+        return str(self.course)
 
 
 class LastRefreshTimeOfSpecialty(models.Model):
@@ -216,6 +224,11 @@ class TaskInfo(models.Model):
     class Meta:
         ordering = ('-created',)
 
+    def __str__(self):
+        return " ".join((str(self.title), str(self.status), str(self.user), str(self.created)))
+
+
+
 
 REPORT_TASK_STATUS_CHOICES = (('Waiting', 'Waiting'), ('Fail', 'Fail'), ('Success', 'Success'))
 
@@ -227,6 +240,9 @@ class ReportTask(models.Model):
 
     class Meta:
         ordering = ('-time',)
+
+    def __str__(self):
+        return " ".join((str(self.user), str(self.time), str(self.status),))
 
 
 class LastReportTime(models.Model):

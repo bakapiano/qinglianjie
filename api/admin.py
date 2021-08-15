@@ -12,8 +12,9 @@ class HEUAccountInfoAdmin(admin.ModelAdmin):
         "fail_last_time",
         "mail_when_grade",
         "qq_me_when_grade",
+        'pingan_daily',
     )
-    list_filter = ('report_daily', 'account_verify_status', 'fail_last_time', 'mail_when_grade', "qq_me_when_grade")
+    list_filter = ('report_daily', 'account_verify_status', 'fail_last_time', 'mail_when_grade', "qq_me_when_grade", 'pingan_daily')
     fk_fields = ('user',)
     search_fields = ('user__username', "heu_username",)
 
@@ -87,6 +88,37 @@ class RecentGradeCourseAdmin(admin.ModelAdmin):
     search_fields = ('course__name', "course__course_id",)
 
 
+class UserProfilePhotoAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'image',
+    )
+    fk_fields = ('user',)
+    search_fields = ('user',)
+
+
+class TaskInfoAdmin(admin.ModelAdmin):
+    list_display = (
+        'title',
+        'status',
+        'user',
+        'created',
+    )
+
+    fk_fields = ('user',)
+    list_filter = ('created', 'status')
+    date_hierarchy = 'created'
+    search_fields = ('title', "description", 'user')
+
+
+class CourseStatisticsResultAdmin(admin.ModelAdmin):
+    list_display = (
+        'course',
+    )
+    fk_fields = ('course',)
+    search_fields = ('course__name', 'course__course_id')
+
+
 admin.site.register(HEUAccountInfo, HEUAccountInfoAdmin)
 admin.site.register(CourseScore, CourseScoreAdmin)
 admin.site.register(CourseInfo, CourseInfoAdmin)
@@ -98,10 +130,10 @@ admin.site.register(NoticeTask)
 admin.site.register(QQBindInfo)
 admin.site.register(XKInfo)
 admin.site.register(GroupInfo)
-admin.site.register(UserProfilePhoto)
-admin.site.register(CourseStatisticsResult)
+admin.site.register(UserProfilePhoto, UserProfilePhotoAdmin)
+admin.site.register(CourseStatisticsResult, CourseStatisticsResultAdmin)
 admin.site.register(LastRefreshTimeOfSpecialty)
-admin.site.register(TaskInfo)
+admin.site.register(TaskInfo, TaskInfoAdmin)
 admin.site.register(ReportTask)
 admin.site.register(LastReportTime)
 admin.site.register(Article)

@@ -94,7 +94,7 @@ class UserProfilePhotoAdmin(admin.ModelAdmin):
         'image',
     )
     fk_fields = ('user',)
-    search_fields = ('user',)
+    search_fields = ('user__username',)
 
 
 class TaskInfoAdmin(admin.ModelAdmin):
@@ -108,7 +108,7 @@ class TaskInfoAdmin(admin.ModelAdmin):
     fk_fields = ('user',)
     list_filter = ('created', 'status')
     date_hierarchy = 'created'
-    search_fields = ('title', "description", 'user')
+    search_fields = ('title', "description", 'user__username')
 
 
 class CourseStatisticsResultAdmin(admin.ModelAdmin):

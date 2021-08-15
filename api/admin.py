@@ -106,7 +106,7 @@ class TaskInfoAdmin(admin.ModelAdmin):
     )
 
     fk_fields = ('user',)
-    list_filter = ('created', 'status')
+    list_filter = ('title', 'created', 'status')
     date_hierarchy = 'created'
     search_fields = ('title', "description", 'user__username')
 

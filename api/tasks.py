@@ -359,7 +359,7 @@ def get_xk_info():
                             '%s 已经开始，' % record[1] + \
                             '时间为 %s\n' % record[2] + \
                             "请注意及时选课！",
-                        type="QQ",
+                        type="QQ",  
                     ).save()
         break
     return "Done"

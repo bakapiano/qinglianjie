@@ -348,6 +348,4 @@ class Crawler:
 
 
 if __name__ == "__main__":
-    t = Crawler()
-    t.login("a","a")
     exit(0)

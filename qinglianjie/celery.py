@@ -20,6 +20,8 @@ app = Celery('qinglianjie')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.timezone = "Asia/Shanghai"
 
+app.conf.broker_transport_options = {'visibility_timeout': 60*60*12}
+
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 
@@ -46,7 +48,7 @@ app.conf.beat_schedule = {
     },
     "auto_pingan" : {
         "task": "api.tasks.pingan_daily",
-        "schedule": crontab(hour=6, minute=0),
+        "schedule": crontab(hour=8, minute=0),
     },
 }
 
@@ -63,7 +65,6 @@ app.conf.task_routes = {
     'api.tasks.do_pingan': {'queue': 'back'},
     'api.tasks.pingan_daily': {'queue': 'back'},
 }
-
 
 @app.task(bind=True)
 def debug_task(self):

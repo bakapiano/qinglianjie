@@ -17,6 +17,11 @@ services:
       '--character-set-server=utf8mb4',
       '--collation-server=utf8mb4_unicode_ci',
     ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   redis:
     image: redis:alpine
@@ -27,7 +32,12 @@ services:
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
       - ./redis_data/:/data/
-      
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+
   web:
     build: .
     #command: python manage.py runserver 0:8000
@@ -47,23 +57,38 @@ services:
     depends_on:
       - mysql
       - redis
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
 
   celery_user:
     build: .
-    command: celery -A qinglianjie worker -B -l debug -Q user
+    command: celery -A qinglianjie worker -Q user
     working_dir: /code
     volumes:
       - .:/code
     depends_on:
       - mysql
       - redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
 
   celery_back:
     build: .
-    command: celery -A qinglianjie worker -B -l debug -Q back
+    command: celery -A qinglianjie worker -B -Q back
     working_dir: /code
     volumes:
       - .:/code
     depends_on:
       - mysql
       - redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M

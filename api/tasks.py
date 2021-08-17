@@ -374,8 +374,9 @@ def pingan_daily():
     return "Done"
 
 
+DEFAULT_RETRY_TIMES = 3
 @shared_task
-def do_pingan(id, task_title):
+def do_pingan(id, task_title, retry_times=DEFAULT_RETRY_TIMES):
     info = HEUAccountInfo.objects.get_or_create(id=id)[0]
     try:
         crawler = Crawler()
@@ -392,11 +393,14 @@ def do_pingan(id, task_title):
         return "Success"
 
     except Exception as e:
-        TaskInfo.objects.create(
-            title=task_title,
-            status="Fail",
-            user=info.user,
-            exception=str(e),
-            additional_info="每日自动平安行动提交失败，可能是HEU账号密码错误或是学校服务器出现问题!",
-        ).save()
-        return str(e)
+        if retry_times == 0:
+            TaskInfo.objects.create(
+                title=task_title,
+                status="Fail",
+                user=info.user,
+                exception=str(e),
+                additional_info="每日自动平安行动尝试%d次后失败，可能是HEU账号密码错误或是学校服务器出现问题!" % DEFAULT_RETRY_TIMES,
+            ).save()
+            return str(e)
+        else:
+            do_pingan.delay(id, task_title, retry_times-1)

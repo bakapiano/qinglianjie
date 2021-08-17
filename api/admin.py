@@ -16,7 +16,7 @@ class HEUAccountInfoAdmin(admin.ModelAdmin):
     )
     list_filter = ('report_daily', 'account_verify_status', 'fail_last_time', 'mail_when_grade', "qq_me_when_grade", 'pingan_daily')
     fk_fields = ('user',)
-    search_fields = ('user__username', "heu_username",)
+    search_fields = ('user__username', "heu_username", "user__email")
 
 
 class CourseScoreAdmin(admin.ModelAdmin):
@@ -106,7 +106,7 @@ class TaskInfoAdmin(admin.ModelAdmin):
     )
 
     fk_fields = ('user',)
-    list_filter = ('title', 'created', 'status')
+    list_filter = ('title', 'created', 'status', 'additional_info')
     date_hierarchy = 'created'
     search_fields = ('title', "description", 'user__username')
 

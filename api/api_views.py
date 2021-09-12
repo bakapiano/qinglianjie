@@ -397,7 +397,13 @@ def get_statistics_result_from_database(course_id: str):
     result = {}
     try:
         course = CourseInfo.objects.get(course_id=course_id)
-        result = json.loads(CourseStatisticsResult.objects.get_or_create(course=course)[0].result)
+        result = json.loads(CourseStatisticsResult.objects.get_or_create(course=course, is_fubaijie_data=False)[0].result)
+        fubaijie_result = CourseStatisticsResult.objects.get_or_create(course=course, is_fubaijie_data=True)[0].result
+        try:
+            result.update(json.loads(fubaijie_result))
+        except Exception as e:
+            print(e)
+            pass
     except Exception as e:
         pass
     return result

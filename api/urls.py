@@ -12,6 +12,7 @@ urlpatterns = [
     path('refresh/timetable', views.refresh_time_table, name="refresh_time_table"),
 
     #测试用
+    path('fubaijie/crawler', views.test_fubaijie_crawler, name="test_fubaijie_crawler"),
     path('auto/report', views.test_auto_report, name="test_auto_report"),
     path('auto/pingan', views.test_auto_pingan, name="test_auto_pingan"),
     path('collect/scores', views.test_collect_scores, name="test_collect_scores"),

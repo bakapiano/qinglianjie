@@ -187,7 +187,6 @@ def refresh_time_table(request):
 
 
 @login_required
-@heu_account_verify_required
 def test_auto_report(request):
     if request.user.is_superuser:
         tasks.report_daily.delay()
@@ -196,7 +195,14 @@ def test_auto_report(request):
 
 
 @login_required
-@heu_account_verify_required
+def test_fubaijie_crawler(request):
+    if request.user.is_superuser:
+        tasks.fubaijie_crawler.delay()
+        return JsonResponse({"status": "Success."})
+    return JsonResponse({"status": "No permission."})
+
+
+@login_required
 def test_auto_pingan(request):
     if request.user.is_superuser:
         tasks.pingan_daily.delay()

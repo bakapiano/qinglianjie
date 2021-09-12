@@ -64,6 +64,8 @@ app.conf.task_routes = {
     'api.tasks.get_xk_info': {'queue': 'back'},
     'api.tasks.do_pingan': {'queue': 'back'},
     'api.tasks.pingan_daily': {'queue': 'back'},
+    'api.tasks.do_collect_fubaijie_comments': {'queue': 'back'},
+    'api.tasks.fubaijie_crawler': {'queue': 'back'},
 }
 
 @app.task(bind=True)

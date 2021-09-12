@@ -1,4 +1,6 @@
 from __future__ import absolute_import, unicode_literals
+
+import requests
 from celery import shared_task
 from lib.heu import Crawler
 from api.models import *
@@ -295,7 +297,7 @@ def collect_course_statistics_result():
         lock.acquire()
         for course in CourseInfo.objects.all():
             print(course)
-            obj = CourseStatisticsResult.objects.get_or_create(course=course)[0]
+            obj = CourseStatisticsResult.objects.get_or_create(course=course, is_fubaijie_data=False)[0]
             obj.result = json.dumps(get_statistics_result(course.course_id))
             obj.save()
     finally:
@@ -404,3 +406,77 @@ def do_pingan(id, task_title, retry_times=DEFAULT_RETRY_TIMES):
             return str(e)
         else:
             do_pingan.delay(id, task_title, retry_times-1)
+
+
+@shared_task
+def fubaijie_crawler():
+    from qinglianjie.settings import FUBAIJIE_CRAWLER_USERNAME, FUBAIJIE_CRAWLER_PASSWORD
+    session = requests.session()
+    session.post(
+        url="https://fubaijie.cn/api/fbj/login/",
+        data={
+            'username': FUBAIJIE_CRAWLER_USERNAME,
+            'password': FUBAIJIE_CRAWLER_PASSWORD,
+        }
+    )
+    session.headers.update({"content-type": "text/html; charset=utf-8"})
+
+    for id in range(1, 5000):
+        result = session.get('https://fubaijie.cn/api/fbj/courses/' + str(id))
+        if not result.ok:
+            break
+        data = json.loads(result.text)
+        course_id = data["course"]["num"]
+        print(course_id)
+        if CourseInfo.objects.filter(course_id=course_id).count() == 0:
+            CourseInfo.objects.create(
+                course_id=course_id,
+                name=data["course"]["name"],
+                credit=data["course"]["credit"],
+                total_time=float(data["course"]["hour"])/10,
+                assessment_method=data["course"]["exam_method"],
+                attributes=data["course"]["attr"],
+                kind=data["course"]["nature"],
+                general_category=data["course"]["general_education_category"],
+            ).save()
+
+        if "不及格" in data["scores"].keys():
+            exam = data["oldscores"]
+            test = data["scores"]
+        else:
+            exam = data["scores"]
+            test = data["oldscores"]
+
+        result_test = {}
+        result_exam = {}
+        total = 0
+        for key,value in exam.items():
+            if value != 0:
+                result_exam.update({key:value})
+                total += value
+        for key, value in test.items():
+            if value != 0:
+                result_test.update({key:value})
+                total += value
+
+        course = CourseInfo.objects.get(course_id=course_id)
+        statistics = CourseStatisticsResult.objects.get_or_create(course=course, is_fubaijie_data=True)[0]
+        statistics.result = json.dumps({
+            "腐败街": {
+                "total": total,
+                "exam": result_exam,
+                "test": result_test,
+            }
+        })
+        statistics.save()
+
+        # do_collect_fubaijie_comments(id)
+
+
+@shared_task
+def do_collect_fubaijie_comments(fubaijie_course_id):
+    pass
+
+
+
+

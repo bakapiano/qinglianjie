@@ -81,6 +81,25 @@ class CourseComment(models.Model):
         return " ".join([str(self.user), str(self.course)])
 
 
+#课程评论
+class FubaijieCourseComment(models.Model):
+    username = models.CharField(max_length=100)
+    course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
+    content = models.TextField(max_length=100)
+    created = models.DateTimeField(default=timezone.now)
+    anonymous = models.BooleanField(default=False)
+
+    # 展示成绩
+    show = models.BooleanField(default=False)
+    score = models.CharField(max_length=20, default="", blank=True)
+
+    class Meta:
+        ordering = ('-created',)
+
+    def __str__(self):
+        return " ".join([str(self.user), str(self.course)])
+
+
 STATUS_CHOICES = (('Fail', 'Fail'), ('Pending', 'Pending'), ('Success', 'Success'), ('Never', 'Never'))
 
 class ScoreQueryResult(models.Model):
@@ -201,6 +220,7 @@ class UserProfilePhoto(models.Model):
 class CourseStatisticsResult(models.Model):
     course = models.ForeignKey(CourseInfo, on_delete=models.CASCADE)
     result = models.TextField(default="")
+    is_fubaijie_data = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.course)
@@ -227,11 +247,7 @@ class TaskInfo(models.Model):
     def __str__(self):
         return " ".join((str(self.title), str(self.status), str(self.user), str(self.created)))
 
-
-
-
 REPORT_TASK_STATUS_CHOICES = (('Waiting', 'Waiting'), ('Fail', 'Fail'), ('Success', 'Success'))
-
 
 class ReportTask(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

@@ -134,7 +134,7 @@ class Crawler:
                         if temp != "":
                             if temp == "---------------------":
                                 col.append(classInfo)
-                                classInfo.clear()
+                                classInfo = []
                             else:
                                 classInfo.append(temp)
                     if len(classInfo) > 0:
